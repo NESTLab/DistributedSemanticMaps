@@ -1,1 +1,5 @@
 .spyproject
+argos-application/build/
+argos-point-cloud/build/
+.vscode
+*.ply
