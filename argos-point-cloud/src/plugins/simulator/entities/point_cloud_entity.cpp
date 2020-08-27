@@ -34,7 +34,7 @@ namespace argos {
       CComposableEntity(NULL, str_id),
       m_pcEmbodiedEntity(
          new CEmbodiedEntity(this,
-                             "body_0",
+                             str_id,
                              c_position,
                              c_orientation,
                              false)),
@@ -113,7 +113,9 @@ namespace argos {
          AddComponent(*m_pcEmbodiedEntity);
          m_pcEmbodiedEntity->Init(GetNode(t_tree, "body"));
          m_pcEmbodiedEntity->SetMovable(false);
+         // m_pcEmbodiedEntity->AddPhysicsModel("dyn2d", );
          UpdateComponents();
+
          /* Set world coordinates of front face */
          CalculateFaceCorners();
       }

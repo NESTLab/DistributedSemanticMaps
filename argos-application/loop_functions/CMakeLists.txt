@@ -21,5 +21,7 @@ target_link_libraries(point_cloud_loop_functions
   )
 
 if(ARGOS_COMPILE_QTOPENGL)
-  target_link_libraries(point_cloud_loop_functions argos3plugin_simulator_qtopengl ${ARGOS_QTOPENGL_LIBRARIES})
+  target_link_libraries(point_cloud_loop_functions argos3plugin_simulator_qtopengl 
+  argos3plugin_simulator_qtopengl_pointcloud
+   ${ARGOS_QTOPENGL_LIBRARIES})
 endif(ARGOS_COMPILE_QTOPENGL)

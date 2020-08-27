@@ -44,6 +44,8 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 GetNodeAttribute(*cCurrNode, "aabbox", strBoundingBox);
                 GetNodeAttribute(*cCurrNode, "local_pose", strPose);
 
+                LOG << strPCEntityId << std::endl;
+
                 /* Extract color vector */
                 std::vector<UInt8> vecColor;
                 SplitStringToUInt8(strColor, vecColor);
@@ -58,9 +60,6 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 /* Get pose quaternion components */
                 std::vector<Real> vecPose;
                 SplitStringToReal(strPose, vecPose);
-
-                // CPointCloudMedium cObject;
-                // CPointCloudEntity cthing;
 
                 /* Create the new point cloud entity*/
                 CPointCloudEntity* pcObject = new CPointCloudEntity(
@@ -78,6 +77,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 catch(CARGoSException& ex) {
                     THROW_ARGOSEXCEPTION_NESTED("Error initializing point cloud", ex);
             }
+            break;
         }
     }
 }

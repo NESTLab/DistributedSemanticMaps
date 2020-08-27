@@ -7,8 +7,13 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENTITIES
 # argos3/plugins/simulator/media
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_MEDIA
     media/point_cloud_medium.h)
+
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENGINES
+    physics_engines/dynamics2d/dynamics2d_point_cloud_model.h)
+
+
 #
-# kheperaiv sources
+# sources
 #
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_POINTCLOUD_SIMULATOR
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENTITIES}
@@ -20,16 +25,12 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_POINTCLOUD_SIMULATOR
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_MEDIA}
   media/point_cloud_medium.cpp)
 
-  # Compile the graphical visualization only if the necessary libraries have been found
-  # if(ARGOS_COMPILE_QTOPENGL)
-  #   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_KHEPERAIV_SIMULATOR
-  #     ${ARGOS3_HEADERS_PLUGINS_ROBOTS_KHEPERAIV_SIMULATOR}
-  #     simulator/qtopengl_kheperaiv.h)
-  #   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_KHEPERAIV
-  #     ${ARGOS3_SOURCES_PLUGINS_ROBOTS_KHEPERAIV}
-  #     simulator/qtopengl_kheperaiv.h
-  #     simulator/qtopengl_kheperaiv.cpp)
-  # endif(ARGOS_COMPILE_QTOPENGL)
+
+  set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_POINTCLOUD_SIMULATOR
+  ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_POINTCLOUD_SIMULATOR}
+  ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENGINES}
+  physics_engines/dynamics2d/dynamics2d_point_cloud_model.cpp)
+
 
 #
 # Create point cloud plugin
@@ -40,9 +41,7 @@ target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_pointcloud_simulator
 if(ARGOS_BUILD_FOR_SIMULATOR)
   target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_pointcloud_simulator
     argos3plugin_${ARGOS_BUILD_FOR}_dynamics2d)
-#   if(ARGOS_COMPILE_QTOPENGL)
-    # target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_kheperaiv argos3plugin_${ARGOS_BUILD_FOR}_qtopengl)
-#   endif(ARGOS_COMPILE_QTOPENGL)
+
 else(ARGOS_BUILD_FOR_SIMULATOR)
   target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_pointcloud_simulator
     -lpointcloud_simulator)
@@ -53,10 +52,10 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 #
 install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_MEDIA} DESTINATION include/argos3/plugins/simulator/media)
 
-if(ARGOS_BUILD_FOR_SIMULATOR)
-  install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENTITIES} DESTINATION include/argos3/plugins/simulator/entities)
-  # install(FILES simulator/kheperaiv_texture_bottom.png simulator/kheperaiv_texture_side.png simulator/kheperaiv_texture_top.png DESTINATION include/argos3/plugins/simulator/visualizations/qt-opengl/textures)
-endif(ARGOS_BUILD_FOR_SIMULATOR)
+install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENTITIES} DESTINATION include/argos3/plugins/simulator/entities)
+
+install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_POINTCLOUD_ENGINES} DESTINATION include/argos3/plugins/simulator/physics_engines)
+
 
 install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_pointcloud_simulator
   RUNTIME DESTINATION bin

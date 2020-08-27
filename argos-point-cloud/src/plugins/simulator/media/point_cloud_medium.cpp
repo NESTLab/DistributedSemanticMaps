@@ -123,7 +123,7 @@ namespace argos {
                    "sensor that detects point clouds, you must add this medium to the XML\n"
                    "configuration file.\n\n"
                    "REQUIRED XML CONFIGURATION\n\n"
-                   "<point_cloud input_file=\"file\" />\n\n"
+                   "<point_cloud id=\"point_cloud\" />\n\n"
                    "OPTIONAL XML CONFIGURATION\n\n"
                    "None for the time being\n",
                    "Under development"

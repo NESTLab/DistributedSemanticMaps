@@ -85,6 +85,7 @@
   <media>
     <range_and_bearing id="rab" check_occlusions="false"/>
     <led id="leds" />
+    <point_cloud id="point_cloud" index="grid" grid_size="20,20,20"  />
   </media>
 
   <!-- ****************** -->
