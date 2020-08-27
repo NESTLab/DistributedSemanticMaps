@@ -59,21 +59,21 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 std::vector<Real> vecPose;
                 SplitStringToReal(strPose, vecPose);
 
-                CPointCloudMedium cObject;
+                // CPointCloudMedium cObject;
                 // CPointCloudEntity cthing;
 
                 /* Create the new point cloud entity*/
-                // CPointCloudEntity* pcObject = new CPointCloudEntity(
-                //     strPCEntityId,
-                //     CVector3(vecBox[0], vecBox[1], vecBox[2]), //position
-                //     CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
-                //     CVector3(vecBox[3], vecBox[4], vecBox[5]), //size
-                //     eCategory, // category 
-                //     CColor(vecColor[0], vecColor[1], vecColor[2]) // color
-                //     );
-                // /* Add it to the simulation */
-                // AddEntity(*pcObject);
-                // m_pcPointClouds.push_back(pcObject);
+                CPointCloudEntity* pcObject = new CPointCloudEntity(
+                    strPCEntityId,
+                    CVector3(vecBox[0], vecBox[1], vecBox[2]), //position
+                    CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
+                    CVector3(vecBox[3], vecBox[4], vecBox[5]), //size
+                    eCategory, // category 
+                    CColor(vecColor[0], vecColor[1], vecColor[2]) // color
+                    );
+                /* Add it to the simulation */
+                AddEntity(*pcObject);
+                m_pcPointClouds.push_back(pcObject);
             }
                 catch(CARGoSException& ex) {
                     THROW_ARGOSEXCEPTION_NESTED("Error initializing point cloud", ex);
