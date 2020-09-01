@@ -18,6 +18,7 @@ target_link_libraries(point_cloud_loop_functions
   argos3plugin_simulator_media
   argos3plugin_simulator_pointcloud_simulator
   argos3plugin_simulator_pointcloud_sensor
+  swarm_mesh_library
   )
 
 if(ARGOS_COMPILE_QTOPENGL)

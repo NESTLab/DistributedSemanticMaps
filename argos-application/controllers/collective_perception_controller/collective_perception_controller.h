@@ -8,6 +8,7 @@
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_actuator.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
+#include <argos3/plugins/robots/generic/control_interface/ci_camera_sensor.h>
 
 #include <argos3/core/utility/configuration/argos_configuration.h>
 #include <argos3/core/utility/math/vector2.h>
@@ -28,18 +29,38 @@ const argos::Real BLOB_SENSOR_RANGE = 100;
 
 class CMySwarmMesh;
 class CCollectivePerception;
+class CHashEventDataType;
 
 /****************************************/
 /****************************************/
+
+/* Structure representing location */
+struct SLocation {
+   float X;
+   float Y;
+
+   /* Default constructor */
+   SLocation() {}
+
+   /* Parameterized constructor */
+   SLocation(float f_x, float f_y) : X(f_x), Y(f_y) {}
+
+   /* Copy operator */
+      SLocation& operator=(const SLocation& s_location) {
+         X = s_location.X;
+         Y = s_location.Y;
+         return *this;
+      }
+};
 
 /* Structure representing events */
 struct SEventData {
    /* Type of event encoded as a color */
-   std::string type;
+   std::string Type;
    /* Value associated to the event */
-   float payload;
+   float Payload;
    /* Spatial location of the event */
-   std::pair<float, float> location;
+   SLocation Location;
 };
 
 /****************************************/
@@ -49,19 +70,34 @@ SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& u
 
 void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_value);
 
-swarmmesh::SKey HashEventDataType(SEventData& s_value);
+/****************************************/
+/****************************************/
 
-/****************************************/
-/****************************************/
+class CHashEventDataType {
+
+   private:
+   uint16_t m_unRobotId = 0;
+   uint16_t m_unTupleCount = 0;
+   
+
+   public:
+      CHashEventDataType() : 
+         m_unRobotId(0),
+         m_unTupleCount(0) {}
+
+      void Init(uint16_t un_robot_id) {m_unRobotId = un_robot_id;}
+      swarmmesh::SKey operator()(SEventData& s_value);
+};
 
 class CMySwarmMesh : public swarmmesh::CSwarmMesh<SEventData> {
-   
+private:
+   CHashEventDataType m_cHashEvent;
+
 public:
-   
    CMySwarmMesh() :
       CSwarmMesh(UnpackEventDataType,
-                 PackEventDataType,
-                 HashEventDataType) {}
+                 PackEventDataType) {}
+   void Init(uint16_t un_robot_id);
    
    ~CMySwarmMesh() {
    }
@@ -124,6 +160,8 @@ private:
    CCI_RangeAndBearingActuator* m_pcRABA;
    /* Pointer to the positioning sensor */
    CCI_PositioningSensor* m_pcPositioning;
+
+   CCI_CameraSensor* m_pcCamera;
 
    /*
     * The following variables are used as parameters for the diffusion

@@ -125,7 +125,8 @@ namespace argos {
             this->operator[]("wall") = WALL;
             this->operator[]("whiteboard") =  WHITEBOARD;
             this->operator[]("window") = WINDOW;
-            this->operator[]("unknown") = UNKNOWN;             
+            this->operator[]("unknown") = UNKNOWN; 
+            this->operator[]("") = UNKNOWN;           
          };
 
          ~categoryMap(){}

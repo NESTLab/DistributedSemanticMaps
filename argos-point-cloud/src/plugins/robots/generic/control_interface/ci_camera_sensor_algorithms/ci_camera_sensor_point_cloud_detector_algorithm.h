@@ -15,7 +15,7 @@ namespace argos {
 #include <argos3/core/utility/math/vector2.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 #include <array>
-#include "../../simulator/entities/point_cloud_entity.h"
+#include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
 #ifdef ARGOS_WITH_LUA
 extern "C" {

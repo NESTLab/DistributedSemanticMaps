@@ -19,6 +19,7 @@
     <collective_perception_controller id="knc"
                                   library="build/controllers/collective_perception_controller/libcollective_perception_controller.so">
       <actuators>
+        <footbot_turret implementation="default"/>
         <differential_steering implementation="default" />
         <range_and_bearing implementation="default" check_occlusions="false"/>
       </actuators>
@@ -27,6 +28,15 @@
         <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
         <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="false"/>
         <positioning implementation="default"/>
+
+        <cameras implementation="default">
+          <camera id="turret_camera" range="0.025:0.225" resolution="640,360"
+                  anchor="turret" position="0.08,0,0.1" orientation="-90,112.5,0"
+                  focal_length="884,884" principal_point="320,180">
+            <point_cloud_detector medium="point_cloud" show_rays="true"/>
+          </camera>
+        </cameras>
+
       </sensors>
       <params alpha="7.5" delta="0.1" velocity="5" />
     </collective_perception_controller>
@@ -44,7 +54,7 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="20, 20, 1" center="0,0,0.5">
+  <arena size="20, 20, 10" center="0,0,0.5">
 
     <box id="wall_north" size="10,0.1,1" movable="false">
       <body position="0,5,0" orientation="0,0,0" />
@@ -60,7 +70,7 @@
     </box>
     
     <distribute>
-      <position method="uniform" min="-3,-3,0" max="3,3,0" />
+      <position method="uniform" min="-5,-5,0" max="5,5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="50" max_trials="100" base_num="1">
         <foot-bot id="K" rab_data_size="570" rab_range="2"
