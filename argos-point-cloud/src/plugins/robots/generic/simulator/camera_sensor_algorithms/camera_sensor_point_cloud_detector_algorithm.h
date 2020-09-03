@@ -74,8 +74,10 @@ namespace argos {
 
             /* Check if front face is in frustum */
             for(const CVector3& c_corner : c_pointCloud.GetFrontCorners()) {
+               LOG << c_corner << std::endl;
                if(IsPointInsideFrustum(c_corner) == false) {
                   /* corner is not inside the frustum */
+                  LOG << "Not in frustum" << std::endl; 
                   return true;
                }
             }

@@ -83,8 +83,8 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                     CColor(vecColor[0], vecColor[1], vecColor[2]) // color
                     );
 
-                CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
                 AddEntity(*pcObject);
+                CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
                 CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *pcObject);
                 pcObject->GetEmbodiedEntity().AddPhysicsModel(ToString("dyn2d"), *pcModel);
                 /* Add it to the simulation */

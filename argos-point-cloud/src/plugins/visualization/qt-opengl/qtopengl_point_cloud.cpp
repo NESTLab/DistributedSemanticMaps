@@ -96,12 +96,6 @@ namespace argos {
       glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
       glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
       glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
-      /* North face */
-      glNormal3f(1.0f, 0.0f, 0.0f);
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
       /* West face */
       glNormal3f(0.0f, 1.0f, 0.0f);
       glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
@@ -109,11 +103,19 @@ namespace argos {
       glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
       glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
       glEnd();
+
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      /* North face */
+      glBegin(GL_QUADS);
+      glNormal3f(1.0f, 0.0f, 0.0f);
+      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+
+      glEnd();
       glEnable(GL_LIGHTING);
       glLineWidth(1.0f);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-
    }
 
    /****************************************/

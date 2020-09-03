@@ -15,7 +15,7 @@
 #include <argos3/core/utility/logging/argos_log.h>
 #include <argos3/core/utility/math/rng.h>
 
-#include "/home/nathalie/Documents/Research/SwarmMesh/src/swarmmesh/swarmmesh.h"
+// #include "/home/nathalie/Documents/Research/SwarmMesh/src/swarmmesh/swarmmesh.h"
 
 #include <queue>
 #include <sstream>
@@ -27,9 +27,9 @@ const argos::Real BLOB_SENSOR_RANGE = 100;
 /****************************************/
 /****************************************/
 
-class CMySwarmMesh;
+// class CMySwarmMesh;
 class CCollectivePerception;
-class CHashEventDataType;
+// class CHashEventDataType;
 
 /****************************************/
 /****************************************/
@@ -66,43 +66,43 @@ struct SEventData {
 /****************************************/
 /****************************************/
 
-SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset);
+// SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset);
 
-void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_value);
+// void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_value);
 
 /****************************************/
 /****************************************/
 
-class CHashEventDataType {
+// class CHashEventDataType {
 
-   private:
-   uint16_t m_unRobotId = 0;
-   uint16_t m_unTupleCount = 0;
+//    private:
+//    uint16_t m_unRobotId = 0;
+//    uint16_t m_unTupleCount = 0;
    
 
-   public:
-      CHashEventDataType() : 
-         m_unRobotId(0),
-         m_unTupleCount(0) {}
+//    public:
+//       CHashEventDataType() : 
+//          m_unRobotId(0),
+//          m_unTupleCount(0) {}
 
-      void Init(uint16_t un_robot_id) {m_unRobotId = un_robot_id;}
-      swarmmesh::SKey operator()(SEventData& s_value);
-};
+//       void Init(uint16_t un_robot_id) {m_unRobotId = un_robot_id;}
+//       swarmmesh::SKey operator()(SEventData& s_value);
+// };
 
-class CMySwarmMesh : public swarmmesh::CSwarmMesh<SEventData> {
-private:
-   CHashEventDataType m_cHashEvent;
+// class CMySwarmMesh : public swarmmesh::CSwarmMesh<SEventData> {
+// private:
+//    CHashEventDataType m_cHashEvent;
 
-public:
-   CMySwarmMesh() :
-      CSwarmMesh(UnpackEventDataType,
-                 PackEventDataType) {}
-   void Init(uint16_t un_robot_id);
+// public:
+//    CMySwarmMesh() :
+//       CSwarmMesh(UnpackEventDataType,
+//                  PackEventDataType) {}
+//    void Init(uint16_t un_robot_id);
    
-   ~CMySwarmMesh() {
-   }
+//    ~CMySwarmMesh() {
+//    }
 
-};
+// };
 
 using namespace argos;
 
@@ -207,7 +207,7 @@ public:
    CRandom::CRNG* m_pcRNG;
 
    /* Data structure object */
-   CMySwarmMesh m_cMySM; 
+   // CMySwarmMesh m_cMySM; 
 
    /* Returns the list of events recorded by the robot
       at the current time step */
@@ -215,7 +215,7 @@ public:
 
    /* Returns world coordinates for a point given its coordinate relative 
    to this robot */
-   CVector2 ComputeAbsolutePosition(const CVector2& c_coordTuple);
+   // CVector2 ComputeAbsolutePosition(const CVector2& c_coordTuple);
 
    void ProcessInMsgs();
 

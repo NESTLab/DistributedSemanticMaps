@@ -9,6 +9,8 @@
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/simulator.h>
 #include "../media/point_cloud_medium.h"
+#include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_engine.h>
+#include "../physics_engines/dynamics2d/dynamics2d_point_cloud_model.h"
 
 namespace argos {
 
@@ -54,42 +56,60 @@ namespace argos {
       /* Coordinates of front face corners in box aligned reference frame */
       std::array<CVector3, 4> arrCornerOffsets;
       arrCornerOffsets[0] = 0.5f * m_cSize; // top right corner
+      arrCornerOffsets[0].SetZ(m_cSize.GetZ());
       arrCornerOffsets[1] = CVector3(arrCornerOffsets[0].GetX(), -arrCornerOffsets[0].GetY(),
-                                     arrCornerOffsets[0].GetZ()); // top left corner
+                                     m_cSize.GetZ()); // top left corner
       arrCornerOffsets[2] = CVector3(arrCornerOffsets[0].GetX(), arrCornerOffsets[0].GetY(),
-                                    -arrCornerOffsets[0].GetZ()); // bottom right corner
+                                    0.); // bottom right corner
       arrCornerOffsets[3] = CVector3(arrCornerOffsets[0].GetX(), -arrCornerOffsets[0].GetY(),
-                                    -arrCornerOffsets[0].GetZ()); // bottom left corner
+                                    0.); // bottom left corner
       /* Coordinates of back face corners in box aligned reference frame */
       std::array<CVector3, 4> arrBackCornerOffsets;
       arrBackCornerOffsets[0] = CVector3(-arrCornerOffsets[0].GetX(), arrCornerOffsets[0].GetY(),
-                                          arrCornerOffsets[0].GetZ()); //top right corner
+                                          m_cSize.GetZ()); //top right corner
       arrBackCornerOffsets[1] = CVector3(-arrCornerOffsets[0].GetX(), -arrCornerOffsets[0].GetY(),
-                                          arrCornerOffsets[0].GetZ()); // left corner
+                                          m_cSize.GetZ()); // left corner
       arrBackCornerOffsets[2] = CVector3(-arrCornerOffsets[0].GetX(), arrCornerOffsets[0].GetY(),
-                                         -arrCornerOffsets[0].GetZ()); // bottom right corner
+                                         0.); // bottom right corner
       arrBackCornerOffsets[3] = CVector3(-arrCornerOffsets[0].GetX(), -arrCornerOffsets[0].GetY(),
-                                         -arrCornerOffsets[0].GetZ()); // bottom left corner
+                                         0.); // bottom left corner
 
       /* Convert front face corner coordinates to world reference frame */
-      std::transform(std::begin(arrCornerOffsets),
-                     std::end(arrCornerOffsets),
-                     std::begin(m_arrFrontFaceCorners),
-                     [=] (const CVector3& c_corner_offset) {
-         CVector3 cCorner(c_corner_offset);
+      int count = 0;
+      for (auto corner: arrCornerOffsets)
+      {
+         CVector3 cCorner(corner);
          cCorner.Rotate(m_pcEmbodiedEntity->GetOriginAnchor().Orientation);
-         return (cCorner + m_pcEmbodiedEntity->GetOriginAnchor().Position);
-      });
+         m_arrFrontFaceCorners[count] = (cCorner + m_pcEmbodiedEntity->GetOriginAnchor().Position);
+         ++count;
+      }
 
-      /* Convert front face corner coordinates to world reference frame */
-      std::transform(std::begin(arrBackCornerOffsets),
-                     std::end(arrBackCornerOffsets),
-                     std::begin(m_arrBackFaceCorners),
-                     [=] (const CVector3& c_corner_offset) {
-         CVector3 cCorner(c_corner_offset);
+      // std::transform(std::begin(arrCornerOffsets),
+      //                std::end(arrCornerOffsets),
+      //                std::begin(m_arrFrontFaceCorners),
+      //                [=] (const CVector3& c_corner_offset) {
+      //    CVector3 cCorner(c_corner_offset);
+      //    cCorner.Rotate(m_pcEmbodiedEntity->GetOriginAnchor().Orientation);
+      //    return (cCorner + m_pcEmbodiedEntity->GetOriginAnchor().Position);
+      // });
+
+      /* Convert back face corner coordinates to world reference frame */
+      count = 0;
+      for (auto corner: arrBackCornerOffsets)
+      {
+         CVector3 cCorner(corner);
          cCorner.Rotate(m_pcEmbodiedEntity->GetOriginAnchor().Orientation);
-         return (cCorner + m_pcEmbodiedEntity->GetOriginAnchor().Position);
-      });
+         m_arrBackFaceCorners[count] = (cCorner + m_pcEmbodiedEntity->GetOriginAnchor().Position);
+         ++count;
+      }
+      // std::transform(std::begin(arrBackCornerOffsets),
+      //                std::end(arrBackCornerOffsets),
+      //                std::begin(m_arrBackFaceCorners),
+      //                [=] (const CVector3& c_corner_offset) {
+      //    CVector3 cCorner(c_corner_offset);
+      //    cCorner.Rotate(m_pcEmbodiedEntity->GetOriginAnchor().Orientation);
+      //    return (cCorner + m_pcEmbodiedEntity->GetOriginAnchor().Position);
+      // });
 
    }
 
@@ -113,11 +133,21 @@ namespace argos {
          AddComponent(*m_pcEmbodiedEntity);
          m_pcEmbodiedEntity->Init(GetNode(t_tree, "body"));
          m_pcEmbodiedEntity->SetMovable(false);
-         // m_pcEmbodiedEntity->AddPhysicsModel("dyn2d", );
-         UpdateComponents();
 
+         CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
+         CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *this);
+         m_pcEmbodiedEntity->AddPhysicsModel(ToString("dyn2d"), *pcModel);
+
+         UpdateComponents();
+         Enable();
          /* Set world coordinates of front face */
          CalculateFaceCorners();
+
+         LOG << m_arrFrontFaceCorners[0] << " " 
+         << m_arrFrontFaceCorners[1] << " " 
+         << m_arrFrontFaceCorners[2] << " " 
+         << m_arrFrontFaceCorners[3] << std::endl; 
+
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Failed to initialize point cloud entity \"" << GetId() << "\".", ex);
@@ -249,40 +279,40 @@ namespace argos {
    // /****************************************/
    // /****************************************/
 
-   // REGISTER_ENTITY(CPointCloudEntity,
-   //                 "point_cloud",
-   //                 "Nathalie Majcherczyk [nmajcherczyk@wpi.edu]",
-   //                 "1.0",
-   //                 "A point cloud with a bounding box.",
-   //                 "It can be used to import objects of different types (40 NYU-D categories).\n\n"
-   //                 "REQUIRED XML CONFIGURATION\n\n"
-   //                 "To declare an object (i.e., a wall) you need the following:\n\n"
-   //                 "  <arena ...>\n"
-   //                 "    ...\n"
-   //                 "    <point_cloud id=\"box1\" size=\"0.75,0.1,0.5\" category=\"chair\"\n"
-   //                 "                 color=\"120,130,140\">\n"
-   //                 "      <body position=\"0.4,2.3,0\" orientation=\"45,0,0\" />\n"
-   //                 "    </point_cloud>\n"
-   //                 "    ...\n"
-   //                 "  </arena>\n\n"
-   //                 "The 'id' attribute is necessary and must be unique among the entities. If two\n"
-   //                 "entities share the same id, initialization aborts.\n"
-   //                 "The 'size' attribute specifies the size of the bouding box along the three axes\n" 
-   //                 "in the X,Y,Z order. When you add a box, imagine it initially unrotated and\n"
-   //                 "centered in the origin. The size, then, corresponds to the extent along the X,\n"
-   //                 "Y and Z axes.\n"
-   //                 "The 'category' attribute specifies the type of object.\n"
-   //                 "The 'body/position' attribute specifies the position of the base of the box in\n"
-   //                 "the arena. The three values are in the X,Y,Z order.\n"
-   //                 "The 'body/orientation' attribute specifies the orientation of the 3D box. All\n"
-   //                 "rotations are performed with respect to the center of mass. The order of the\n"
-   //                 "angles is Z,Y,X, which means that the first number corresponds to the rotation\n"
-   //                 "around the Z axis, the second around Y and the last around X. This reflects\n"
-   //                 "the internal convention used in ARGoS, in which rotations are performed in\n"
-   //                 "that order. Angles are expressed in degrees.\n\n"
-   //                 "OPTIONAL XML CONFIGURATION\n\n",
-   //                 "Usable"
-   //    );
+   REGISTER_ENTITY(CPointCloudEntity,
+                   "point_cloud",
+                   "Nathalie Majcherczyk [nmajcherczyk@wpi.edu]",
+                   "1.0",
+                   "A point cloud with a bounding box.",
+                   "It can be used to import objects of different types (40 NYU-D categories).\n\n"
+                   "REQUIRED XML CONFIGURATION\n\n"
+                   "To declare an object (i.e., a wall) you need the following:\n\n"
+                   "  <arena ...>\n"
+                   "    ...\n"
+                   "    <point_cloud id=\"box1\" size=\"0.75,0.1,0.5\" category=\"chair\"\n"
+                   "                 color=\"120,130,140\">\n"
+                   "      <body position=\"0.4,2.3,0\" orientation=\"45,0,0\" />\n"
+                   "    </point_cloud>\n"
+                   "    ...\n"
+                   "  </arena>\n\n"
+                   "The 'id' attribute is necessary and must be unique among the entities. If two\n"
+                   "entities share the same id, initialization aborts.\n"
+                   "The 'size' attribute specifies the size of the bouding box along the three axes\n" 
+                   "in the X,Y,Z order. When you add a box, imagine it initially unrotated and\n"
+                   "centered in the origin. The size, then, corresponds to the extent along the X,\n"
+                   "Y and Z axes.\n"
+                   "The 'category' attribute specifies the type of object.\n"
+                   "The 'body/position' attribute specifies the position of the base of the box in\n"
+                   "the arena. The three values are in the X,Y,Z order.\n"
+                   "The 'body/orientation' attribute specifies the orientation of the 3D box. All\n"
+                   "rotations are performed with respect to the center of mass. The order of the\n"
+                   "angles is Z,Y,X, which means that the first number corresponds to the rotation\n"
+                   "around the Z axis, the second around Y and the last around X. This reflects\n"
+                   "the internal convention used in ARGoS, in which rotations are performed in\n"
+                   "that order. Angles are expressed in degrees.\n\n"
+                   "OPTIONAL XML CONFIGURATION\n\n",
+                   "Usable"
+      );
 
    // // /****************************************/
    // // /****************************************/
