@@ -25,15 +25,16 @@
       </actuators>
       <sensors>
         <footbot_proximity implementation="default" show_rays="false" /> 
-        <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
+        <range_and_bearing implementation="medium" medium="rab"/>
+        <!-- show_rays="true"/> -->
         <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="false"/>
         <positioning implementation="default"/>
 
-        <cameras implementation="default">
-          <camera id="turret_camera" range="0.025:0.225" resolution="640,360"
-                  anchor="turret" position="0.08,0,0.1" orientation="-90,112.5,0"
+        <cameras implementation="default" show_frustum="true">
+          <camera id="fixed_camera" range="0.025:1" resolution="1280,720"
+                  anchor="origin" position="0.08,0,0.1" orientation="-90,80,0"
                   focal_length="884,884" principal_point="320,180">
-            <point_cloud_detector medium="point_cloud" show_rays="true"/>
+            <point_cloud_detector medium="point_clouds" show_rays="true"/>
           </camera>
         </cameras>
 
@@ -95,7 +96,7 @@
   <media>
     <range_and_bearing id="rab" check_occlusions="false"/>
     <led id="leds" />
-    <point_cloud id="point_cloud" index="grid" grid_size="20,20,20"  />
+    <point_cloud id="point_clouds" index="grid" grid_size="20,20,20"  />
   </media>
 
   <!-- ****************** -->

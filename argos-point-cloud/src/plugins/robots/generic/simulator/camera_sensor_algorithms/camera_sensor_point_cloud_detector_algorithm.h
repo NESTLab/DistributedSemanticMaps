@@ -77,7 +77,7 @@ namespace argos {
                LOG << c_corner << std::endl;
                if(IsPointInsideFrustum(c_corner) == false) {
                   /* corner is not inside the frustum */
-                  LOG << "Not in frustum" << std::endl; 
+                  // LOG << "Not in frustum" << std::endl; 
                   return true;
                }
             }

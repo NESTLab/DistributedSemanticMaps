@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="20"
+    <experiment length="200"
                 ticks_per_second="10"
                 random_seed="1" />
   </framework>
@@ -67,7 +67,8 @@
       <body position="-1.5,0,0" orientation="0,0,0" />
     </box>
     
-    <point_cloud id="test" size="0.2,0.2,0.2" category="table" color="10,20,30,40">
+    <point_cloud id="test" size="0.2,0.2,0.2" category="table" color="10,20,30,40"
+                  medium="point_clouds">
       <body position="0,0,0" orientation="0,0,0"/>
     </point_cloud>
 
@@ -76,7 +77,7 @@
       <controller config="knc"/>
     </foot-bot>
 
-    <foot-bot id="K2">
+    <!-- <foot-bot id="K2">
       <body position="-1,0,0" orientation="0,0,0" />
       <controller config="knc"/>
     </foot-bot>
@@ -90,7 +91,7 @@
       <body position="0,-1,0" orientation="90,0,0" />
       <controller config="knc"/>
     </foot-bot>
-
+ -->
 
     <!-- <distribute>
       <position method="uniform" min="-1,-1,0" max="1,1,0" />

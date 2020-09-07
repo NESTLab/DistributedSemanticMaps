@@ -138,15 +138,16 @@ namespace argos {
          CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *this);
          m_pcEmbodiedEntity->AddPhysicsModel(ToString("dyn2d"), *pcModel);
 
+         /* Add the point cloud to the medium */
+         std::string strMedium;
+         GetNodeAttribute(t_tree, "medium", strMedium);
+         m_pcPointCloudMedium = &CSimulator::GetInstance().GetMedium<CPointCloudMedium>(strMedium);
+         SetMedium(*m_pcPointCloudMedium);
+
          UpdateComponents();
          Enable();
          /* Set world coordinates of front face */
          CalculateFaceCorners();
-
-         LOG << m_arrFrontFaceCorners[0] << " " 
-         << m_arrFrontFaceCorners[1] << " " 
-         << m_arrFrontFaceCorners[2] << " " 
-         << m_arrFrontFaceCorners[3] << std::endl; 
 
       }
       catch(CARGoSException& ex) {

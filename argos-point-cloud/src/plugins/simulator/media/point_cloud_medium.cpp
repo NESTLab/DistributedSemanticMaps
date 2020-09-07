@@ -10,14 +10,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CPointCloudMedium::CPointCloudMedium() {
-   }
+   // CPointCloudMedium::CPointCloudMedium() {
+   // }
 
    /****************************************/
    /****************************************/
 
-   CPointCloudMedium::~CPointCloudMedium() {
-   }
+   // CPointCloudMedium::~CPointCloudMedium() {
+   // }
 
    /****************************************/
    /****************************************/

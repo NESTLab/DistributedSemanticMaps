@@ -23,7 +23,7 @@ public:
    virtual void Init(TConfigurationNode& t_node);
    virtual void Reset() {}
    virtual void PreStep() {}
-   virtual void PostStep() {}
+   virtual void PostStep();
 
    void SplitString(std::string str, std::vector<std::string>& buffer);
    void SplitStringToReal(std::string str, std::vector<Real>& buffer);

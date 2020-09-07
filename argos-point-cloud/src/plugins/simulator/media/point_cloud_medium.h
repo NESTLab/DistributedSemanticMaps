@@ -19,12 +19,14 @@ namespace argos {
       /**
        * Class constructor.
        */
-      CPointCloudMedium();
+      CPointCloudMedium():
+         m_pcPointCloudEntityIndex(nullptr),
+         m_pcPointCloudEntityGridUpdateOperation(nullptr) {}
 
       /**
        * Class destructor.
        */
-      virtual ~CPointCloudMedium();
+      virtual ~CPointCloudMedium(){}
 
       virtual void Init(TConfigurationNode& t_tree);
       virtual void PostSpaceInit();
