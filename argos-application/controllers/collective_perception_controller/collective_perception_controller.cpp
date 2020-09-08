@@ -75,7 +75,6 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
 {
    /* Get sensor/actuator handles */
    m_pcWheels    = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
-   m_pcBlobCamera = GetSensor  <CCI_ColoredBlobOmnidirectionalCameraSensor     >("colored_blob_omnidirectional_camera"    );
    m_pcProximity = GetSensor  <CCI_FootBotProximitySensor      >("footbot_proximity"    );
    m_pcRABA   = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
    m_pcRABS   = GetSensor  <CCI_RangeAndBearingSensor  >("range_and_bearing");
@@ -83,7 +82,6 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
 
    m_pcCamera = GetSensor <CCI_CameraSensor>("cameras");
 
-   m_pcBlobCamera->Enable();
 
    m_pcRNG = CRandom::CreateRNG("argos");
 
@@ -153,8 +151,14 @@ void CCollectivePerception::ControlStep()
    &dynamic_cast<CCI_CameraSensorPointCloudDetectorAlgorithm&>(*tInterfaces[0].Algorithms[0]);
    const std::vector<CCI_CameraSensorPointCloudDetectorAlgorithm::SReading>& tReadings = pAlgorithm->GetReadings();
 
-   if(tReadings.size() > 0)
-      LOG << tReadings[0].Center << std::endl;
+   if(tReadings.size() > 0){
+      LOG << "Robot " << m_unRobotId << std::endl;
+      LOG << tReadings[0].Category << " at " << tReadings[0].Center << std::endl;
+      for (auto corner : tReadings[0].Corners)
+      {
+         LOG << corner << std::endl;
+      }
+   }
 
    /* Record events */
    std::queue<SEventData> sEvents = RecordEvents();   

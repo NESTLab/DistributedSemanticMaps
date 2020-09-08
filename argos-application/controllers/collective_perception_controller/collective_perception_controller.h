@@ -150,8 +150,6 @@ private:
 
    /* Pointer to the differential steering actuator */
    CCI_DifferentialSteeringActuator* m_pcWheels;
-   /* Pointer to the differential steering actuator */
-   CCI_ColoredBlobOmnidirectionalCameraSensor* m_pcBlobCamera;
    /* Pointer to the foot-bot proximity sensor */
    CCI_FootBotProximitySensor* m_pcProximity;
    /* Pointer to the RAB sensor */

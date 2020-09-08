@@ -16,7 +16,6 @@ namespace argos {
    CDynamics2DPointCloudModel::CDynamics2DPointCloudModel(CDynamics2DEngine& c_engine,
                                             CPointCloudEntity& c_entity) :
       CDynamics2DStretchableObjectModel(c_engine, c_entity) {
-      DEBUG("Id %s", c_entity.GetId().c_str());
       /* Get the size of the entity */
       CVector3 cHalfSize = c_entity.GetSize() * 0.5f;
       /* Create a polygonal object in the physics space */

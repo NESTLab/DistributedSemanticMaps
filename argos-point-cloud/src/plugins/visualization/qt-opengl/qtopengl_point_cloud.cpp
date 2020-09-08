@@ -28,7 +28,7 @@ namespace argos {
        m_unVertices(20){
 
        /* Reserve the needed display lists */
-       m_unBaseList = glGenLists(2); // 1?
+       m_unBaseList = glGenLists(1);
        m_unBodyList = m_unBaseList;
 
        /* Make body list */
@@ -42,7 +42,7 @@ namespace argos {
    /****************************************/
 
    CQTOpenGLPointCloud::~CQTOpenGLPointCloud() {
-      glDeleteLists(m_unBaseList, 2); //1 ?
+      glDeleteLists(m_unBaseList, 1); //1 ?
    }
 
    /****************************************/
@@ -57,65 +57,87 @@ namespace argos {
       // glCallList(m_unBodyList);
       // glPopMatrix();
 
-      // const GLfloat color[] = {c_entity.GetColor().GetRed(), 
-      // c_entity.GetColor().GetGreen(), c_entity.GetColor().GetBlue(),
-      // c_entity.GetColor().GetAlpha()};
+      const GLfloat color[] = { (float) c_entity.GetColor().GetRed()/255., 
+      (float) c_entity.GetColor().GetGreen()/255., (float) c_entity.GetColor().GetBlue()/255.,
+      (float) c_entity.GetColor().GetAlpha()};
 
-      const SBoundingBox& sBBox = c_entity.GetEmbodiedEntity().GetBoundingBox();
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      glDisable(GL_LIGHTING);
-      glLineWidth(3.0f);
-      glColor3b(c_entity.GetColor().GetRed(), 
-      c_entity.GetColor().GetGreen(), c_entity.GetColor().GetBlue());
-      /* This part covers the top and bottom faces (parallel to XY) */
-      glBegin(GL_QUADS);
-      /* Bottom face */
-      glNormal3f(0.0f, 0.0f, -1.0f);
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      /* Top face */
-      glNormal3f(0.0f, 0.0f, 1.0f);
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glEnd();
-      /* This part covers the faces (South, East, North, West) */
-      glBegin(GL_QUADS);
-      /* South face */
-      glNormal3f(-1.0f, 0.0f, 0.0f);
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      /* East face */
-      glNormal3f(0.0f, -1.0f, 0.0f);
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
-      /* West face */
-      glNormal3f(0.0f, 1.0f, 0.0f);
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      glEnd();
+      /* Draw the body */
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+      glPushMatrix();
+      glScalef(c_entity.GetSize().GetX(), c_entity.GetSize().GetY(), c_entity.GetSize().GetZ());
+      glCallList(m_unBodyList);
+      glPopMatrix();
 
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      /* North face */
-      glBegin(GL_QUADS);
-      glNormal3f(1.0f, 0.0f, 0.0f);
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
-      glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // std::array<CVector3, 4> frontFace = c_entity.GetFrontCorners();
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      // glDisable(GL_LIGHTING);
+      // glLineWidth(3.0f);
+      // glColor3f(1.,1.,1.);
+      // glBegin(GL_QUADS);
+      // glVertex3f(frontFace[0].GetX(), frontFace[0].GetY(), frontFace[0].GetZ());
+      // glVertex3f(frontFace[1].GetX(), frontFace[1].GetY(), frontFace[1].GetZ());
+      // glVertex3f(frontFace[2].GetX(), frontFace[2].GetY(), frontFace[2].GetZ());
+      // glVertex3f(frontFace[3].GetX(), frontFace[3].GetY(), frontFace[3].GetZ());
+      // glEnd();
+      // glEnable(GL_LIGHTING);
+      // glLineWidth(1.0f);
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-      glEnd();
-      glEnable(GL_LIGHTING);
-      glLineWidth(1.0f);
+      // const SBoundingBox& sBBox = c_entity.GetEmbodiedEntity().GetBoundingBox();
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      // glDisable(GL_LIGHTING);
+      // glLineWidth(3.0f);
+      // glColor3b(c_entity.GetColor().GetRed(), 
+      // c_entity.GetColor().GetGreen(), c_entity.GetColor().GetBlue());
+      // /* This part covers the top and bottom faces (parallel to XY) */
+      // glBegin(GL_QUADS);
+      // /* Bottom face */
+      // glNormal3f(0.0f, 0.0f, -1.0f);
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      // /* Top face */
+      // glNormal3f(0.0f, 0.0f, 1.0f);
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glEnd();
+      // /* This part covers the faces (South, East, North, West) */
+      // glBegin(GL_QUADS);
+      // /* South face */
+      // glNormal3f(-1.0f, 0.0f, 0.0f);
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      // /* East face */
+      // glNormal3f(0.0f, -1.0f, 0.0f);
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // /* West face */
+      // glNormal3f(0.0f, 1.0f, 0.0f);
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MinCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glEnd();
+
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      // /* North face */
+      // glBegin(GL_QUADS);
+      // glNormal3f(1.0f, 0.0f, 0.0f);
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MinCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MaxCorner.GetY(), sBBox.MaxCorner.GetZ());
+      // glVertex3f(sBBox.MaxCorner.GetX(), sBBox.MinCorner.GetY(), sBBox.MaxCorner.GetZ());
+
+      // glEnd();
+      // glEnable(GL_LIGHTING);
+      // glLineWidth(1.0f);
    }
 
    /****************************************/
