@@ -126,6 +126,7 @@ namespace argos {
          std::string strCategory;       
          GetNodeAttribute(t_tree, "category", strCategory);
          m_eCategory = categoryMap() [strCategory];
+         m_unNumCategories = categoryMap().size() - 2;
          /* Parse XML to get the mass */
          GetNodeAttribute(t_tree, "color", m_cColor);
          /* Create embodied entity using parsed data */

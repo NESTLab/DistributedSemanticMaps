@@ -179,7 +179,7 @@ namespace argos {
          return m_arrBackFaceCorners;
       }
 
-      inline ECategory GetCategory() const {
+      inline ECategory GetCategory() {
          return m_eCategory;
       }
 
@@ -193,6 +193,10 @@ namespace argos {
 
       inline void SetColor(CColor c_color) {
          m_cColor = c_color;
+      }
+
+      inline size_t GetNumCategories() const {
+         return m_unNumCategories;
       }
 
       void SetEnabled(bool b_enabled);
@@ -233,6 +237,7 @@ namespace argos {
       CPointCloudMedium*  m_pcPointCloudMedium;
       std::array<CVector3, 4> m_arrFrontFaceCorners;
       std::array<CVector3, 4> m_arrBackFaceCorners;
+      size_t m_unNumCategories;
 
       void CalculateFaceCorners();
 

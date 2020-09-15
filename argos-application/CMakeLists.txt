@@ -21,10 +21,10 @@ if(GALIB_FOUND)
 endif(GALIB_FOUND)
 
 # Find Lua
-find_package(Lua52 REQUIRED)
-if(LUA52_FOUND)
+find_package(Lua53 REQUIRED)
+if(LUA53_FOUND)
    include_directories(${LUA_INCLUDE_DIR})
-endif(LUA52_FOUND)
+endif(LUA53_FOUND)
 
 find_package(swarm_mesh_library REQUIRED)
 if(swarm_mesh_library_FOUND)

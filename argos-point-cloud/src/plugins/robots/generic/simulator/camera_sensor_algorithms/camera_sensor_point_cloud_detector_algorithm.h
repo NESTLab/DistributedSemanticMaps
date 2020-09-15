@@ -15,10 +15,17 @@ namespace argos {
 #include <argos3/core/simulator/space/positional_indices/positional_index.h>
 #include <argos3/core/utility/math/ray3.h>
 #include <argos3/core/utility/math/matrix/transformationmatrix3.h>
+#include <argos3/core/utility/math/rng.h>
+#include <argos3/core/utility/logging/argos_log.h>
 
-#include "../../../../simulator/entities/point_cloud_entity.h"
+#include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 #include <argos3/plugins/robots/generic/simulator/camera_sensor_algorithm.h>
 #include "../../control_interface/ci_camera_sensor_algorithms/ci_camera_sensor_point_cloud_detector_algorithm.h"
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <random>
 
 namespace argos {
    
@@ -94,7 +101,17 @@ namespace argos {
             }
 
             CVector3 cCenter = c_pointCloud.GetEmbodiedEntity().GetOriginAnchor().Position;
-            const CPointCloudEntity::ECategory& eCategory = c_pointCloud.GetCategory();
+
+            double dAccuracy = m_cAlgorithm.m_probPosteriorDistribution(m_cAlgorithm.m_randEngine) 
+                                 / m_cAlgorithm.m_dNumSamples;
+            double dSampleAccuracy = m_cAlgorithm.m_pcRNG->Uniform(CRange<double>(0.0, 1.0));
+ 
+            CPointCloudEntity::ECategory eCategory = c_pointCloud.GetCategory();
+            if (dSampleAccuracy > dAccuracy) {
+               eCategory = static_cast<CPointCloudEntity::ECategory>(
+                  m_cAlgorithm.m_pcRNG->Uniform(CRange<UInt32>(0, c_pointCloud.GetNumCategories() + 1)));
+            }
+
             m_cAlgorithm.AddReading(eCategory, cCenter, m_arrBoundingBoxCorners);
             return true;
          }
@@ -153,6 +170,10 @@ namespace argos {
    private:
       bool                           m_bShowRays;
       CPositionalIndex<CPointCloudEntity>*  m_pcPointCloudIndex;
+      std::discrete_distribution<int> m_probPosteriorDistribution;
+      std::default_random_engine m_randEngine;
+      double m_dNumSamples;
+      CRandom::CRNG* m_pcRNG;
    };
 }         
 
