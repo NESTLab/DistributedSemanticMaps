@@ -77,25 +77,25 @@
 
     <point_cloud id="item3" size="0.6,0.8,0.5" category="table" color="0,0,255,1"
                   medium="point_clouds">
-      <body position="2,0,0" orientation="0,0,0"/>
+      <body position="2,0,0" orientation="180,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item4" size="0.3,0.3,0.6" category="chair" color="58,1,47,1"
+    <point_cloud id="item4" size="0.3,0.3,0.6" category="chair" color="158,1,47,1"
                   medium="point_clouds">
       <body position="0,1,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item5" size="0.6,0.6,0.2" category="television" color="0,255,40,1"
+    <point_cloud id="item5" size="0.6,0.6,0.2" category="cabinet" color="0,255,40,1"
                   medium="point_clouds">
       <body position="0,2,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item6" size="0.2,0.2,0.2" category="lamp" color="0,255,255,1"
+    <point_cloud id="item6" size="0.2,0.2,0.2" category="display" color="40,210,0,1"
                   medium="point_clouds">
       <body position="2,1,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item7" size="0.2,0.2,0.2" category="bag" color="254,0,0,1"
+    <point_cloud id="item7" size="0.2,0.2,0.2" category="toilet" color="254,0,0,1"
                   medium="point_clouds">
       <body position="1.5,-0.7,0" orientation="90,0,0"/>
     </point_cloud>
@@ -105,26 +105,45 @@
       <body position="2.1,-1,0" orientation="90,90,0"/>
     </point_cloud>
 
-    <point_cloud id="item9" size="0.6,0.8,0.5" category="fridge" color="0,100,100,1"
+    <point_cloud id="item9" size="0.6,0.8,0.5" category="shelf" color="0,100,100,1"
                   medium="point_clouds">
       <body position="2,2,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item10" size="0.3,0.3,0.6" category="mirror" color="1,58,47,1"
+    <point_cloud id="item10" size="0.3,0.3,0.6" category="door" color="100,158,47,1"
                   medium="point_clouds">
       <body position="1,1.5,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item11" size="0.6,0.2,0.6" category="whiteboard" color="0,0,0,1"
+    <point_cloud id="item11" size="0.6,0.2,0.6" category="desk" color="255,165,0,1"
                   medium="point_clouds">
       <body position="-0.2,-2,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item12" size="0.2,0.2,0.2" category="sink" color="0,255,255,1"
+    <point_cloud id="item12" size="0.2,0.2,0.2" category="sink" color="0,200,200,1"
                   medium="point_clouds">
       <body position="1,0.2,0.2" orientation="0,0,0"/>
     </point_cloud>
 
+    <point_cloud id="item13" size="0.5,0.5,0.5" category="pillow" color="0,100,100,1"
+                  medium="point_clouds">
+      <body position="-2.1,-2.1,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="item14" size="0.3,0.3,0.4" category="bag" color="1,58,47,1"
+                  medium="point_clouds">
+      <body position="-1,-0.5,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="item15" size="0.6,0.5,0.6" category="desk" color="130,50,20,1"
+                  medium="point_clouds">
+      <body position="1.5,-2,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="item16" size="0.4,0.4,0.8" category="chair" color="0,255,255,1"
+                  medium="point_clouds">
+      <body position="1,-0.2,0" orientation="0,0,0"/>
+    </point_cloud>
 
     <distribute>
       <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
@@ -159,7 +178,8 @@
   <!-- ****************** -->
   <visualization>
     <qt-opengl>
-      <!-- <user_functions label="networking_qtuser_functions" />            -->
+      <user_functions library="build/loop_functions/libpoint_cloud_qtuser_functions.so"
+                      label="point_cloud_qtuser_functions" />           
     </qt-opengl>
   </visualization>
 

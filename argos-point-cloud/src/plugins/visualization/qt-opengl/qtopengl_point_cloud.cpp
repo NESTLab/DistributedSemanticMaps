@@ -50,16 +50,9 @@ namespace argos {
 
    void CQTOpenGLPointCloud::Draw(const CPointCloudEntity& c_entity) {
       /* Draw the body */
-
-      // glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
-      // glPushMatrix();
-      // glScalef(c_entity.GetSize().GetX(), c_entity.GetSize().GetY(), c_entity.GetSize().GetZ());
-      // glCallList(m_unBodyList);
-      // glPopMatrix();
-
-      const GLfloat color[] = { (float) c_entity.GetColor().GetRed()/255., 
-      (float) c_entity.GetColor().GetGreen()/255., (float) c_entity.GetColor().GetBlue()/255.,
-      (float) c_entity.GetColor().GetAlpha()};
+      const GLfloat color[] = { (double) c_entity.GetColor().GetRed()/255., 
+      (double) c_entity.GetColor().GetGreen()/255., (double) c_entity.GetColor().GetBlue()/255.,
+      (double) c_entity.GetColor().GetAlpha()};
 
       /* Draw the body */
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);

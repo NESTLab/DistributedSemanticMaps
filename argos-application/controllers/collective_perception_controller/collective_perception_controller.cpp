@@ -6,59 +6,115 @@
 /****************************************/
 /****************************************/
 
-// SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset) {
-//    SEventData sValue;
-//    sValue.Type = swarmmesh::UnpackString(vec_buffer, un_offset);
-//    sValue.Payload = swarmmesh::UnpackFloat(vec_buffer, un_offset);
-//    sValue.Location = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
-//                      swarmmesh::UnpackFloat(vec_buffer, un_offset)};
-//    return sValue;
-// }
-
-// void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_event) {
-//    swarmmesh::PackString(vec_buffer, s_event.Type);
-//    swarmmesh::PackFloat(vec_buffer, s_event.Payload);
-//    swarmmesh::PackFloat(vec_buffer, s_event.Location.X);
-//    swarmmesh::PackFloat(vec_buffer, s_event.Location.Y);
-// }
-
-// swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
+/**
+ * Unpack SEventData object from the byte buffer
+ * 
+ * @param vec_buffer The byte buffer
+ * @param un_offset Offset into the buffer
+ * @return SEventData The unpacked object
+ */
+SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset) {
+  
+   // LOG << vec_buffer.size() << " " << un_offset << std::endl;
+   SEventData sValue;
    
-//    std::string strColor = s_value.Type;
+   sValue.Type = swarmmesh::UnpackString(vec_buffer, un_offset);
+   // LOG << sValue.Type << std::endl;
 
-//    /* Data hashing based on blob color */
-//    uint32_t unHash;
-//    if(strColor == "gray10") {unHash = 1;}
-//    else if(strColor == "white") {unHash = 1 + BUCKET_SIZE;}
-//    else if(strColor == "red") {unHash = 1 + 2 * BUCKET_SIZE;}
-//    else if(strColor  == "green") {unHash = 1 + 3 * BUCKET_SIZE;}
-//    else if(strColor  == "blue") {unHash = 1 + 4 * BUCKET_SIZE;}
-//    else if(strColor  == "magenta") {unHash = 1 + 5 * BUCKET_SIZE;}
-//    else if(strColor == "cyan") {unHash = 1 + 6 * BUCKET_SIZE;}
-//    else if(strColor  == "yellow") {unHash = 1 + 7 * BUCKET_SIZE;}
-//    else if(strColor  == "orange") {unHash = 1 + 8 * BUCKET_SIZE;}
-//    else if(strColor  == "brown") {unHash = 1 + 9 * BUCKET_SIZE;}
-//    else if(strColor  == "purple") {unHash = 1 + 10 * BUCKET_SIZE;}
-//    else if(strColor  ==  "gray50") {unHash = 1 + 11 * BUCKET_SIZE;}
-//    else  unHash = 0;
+   sValue.Payload = {swarmmesh::UnpackFloat(vec_buffer, un_offset),
+                     swarmmesh::UnpackString(vec_buffer, un_offset)};
 
-//    /* Unique tuple identifier based on robot id and 
-//       tuple count */
-//    ++m_unTupleCount;
-//    uint32_t unIdentifier = ((uint32_t) m_unRobotId << 16) + m_unTupleCount;
+   // LOG << sValue.Payload.Radius << std::endl;
+
+   sValue.Location = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
+                     swarmmesh::UnpackFloat(vec_buffer, un_offset),
+                     swarmmesh::UnpackFloat(vec_buffer, un_offset)};
+
+   // LOG << sValue.Location.X << " " << sValue.Location.Y << std::endl;
+   return sValue;
+}
+
+/**
+ * Serialize the given event data into the byte buffer
+ * 
+ * @param vec_buffer The byte buffer
+ * @param s_event The event to be serialized
+ */
+void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_event) {
+
+   swarmmesh::PackString(vec_buffer, s_event.Type);
+
+   swarmmesh::PackFloat(vec_buffer,s_event.Payload.Radius);
+   swarmmesh::PackString(vec_buffer, s_event.Payload.Category);
+
+   swarmmesh::PackFloat(vec_buffer, s_event.Location.X);
+   swarmmesh::PackFloat(vec_buffer, s_event.Location.Y);
+   swarmmesh::PackFloat(vec_buffer, s_event.Location.Z);
+}
+
+/****************************************/
+/****************************************/
+
+/* Per class accuracy with BGA-DGCNN
+30.1	box
+48.2	bag
+72.7	bed
+72.9	toilet
+74.1	table
+77.3	desk
+78.1	pillow
+79.2	sink
+80.4	display
+80.5	shelf
+81.9	bin
+84.4	cabinet
+91	sofa
+92.4	door
+92.6	chair
+*/
+
+swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    
-//    return swarmmesh::SKey(unHash, unIdentifier);
-// }
+   std::string strCategory = s_value.Type;
 
-// void CMySwarmMesh::Init(uint16_t un_robotId) {
-//    m_cHashEvent.Init(un_robotId);
-//    CSwarmMesh::Init(un_robotId, m_cHashEvent); 
-// }
+   /* Data hashing based on point cloud type */
+   uint32_t unHash;
+   if(strCategory == "chair") {unHash = 1;}
+   else if(strCategory == "door") {unHash = 1 + 1 * BUCKET_SIZE;}
+   else if(strCategory == "sofa") {unHash = 1 + 2 * BUCKET_SIZE;}
+   else if(strCategory == "cabinet") {unHash = 1 + 3 * BUCKET_SIZE;}
+   else if(strCategory  == "bin") {unHash = 1 + 4 * BUCKET_SIZE;}
+   else if(strCategory  == "shelf") {unHash = 1 + 5 * BUCKET_SIZE;}
+   else if(strCategory  == "display") {unHash = 1 + 6 * BUCKET_SIZE;}
+   else if(strCategory  == "sink") {unHash = 1 + 7 * BUCKET_SIZE;}
+   else if(strCategory  == "pillow") {unHash = 1 + 8 * BUCKET_SIZE;}
+   else if(strCategory  == "desk") {unHash = 1 + 9 * BUCKET_SIZE;}
+   else if(strCategory  ==  "table") {unHash = 1 + 10 * BUCKET_SIZE;}
+   else if(strCategory  == "toilet") {unHash = 1 + 11 * BUCKET_SIZE;}
+   else if(strCategory  ==  "bed") {unHash = 1 + 12 * BUCKET_SIZE;}
+   else if(strCategory  ==  "bag") {unHash = 1 + 13 * BUCKET_SIZE;}
+   else if(strCategory  ==  "box") {unHash = 1 + 14 * BUCKET_SIZE;}
+   else  unHash = 0;
+
+   /* Unique tuple identifier based on robot id and 
+      tuple count */
+   ++m_unTupleCount;
+   uint32_t unIdentifier = ((uint32_t) m_unRobotId << 16) + m_unTupleCount;
+   
+   return swarmmesh::SKey(unHash, unIdentifier);
+}
+
+void CMySwarmMesh::Init(uint16_t un_robotId) {
+   m_cHashEvent.Init(un_robotId);
+   CSwarmMesh::Init(un_robotId, m_cHashEvent); 
+}
 
 /****************************************/
 /****************************************/
 
 CCollectivePerception::CCollectivePerception() :
+   m_unClock(0),
+   m_unTimeLastRecording(0),
    m_pcWheels(NULL),
    m_pcProximity(NULL),
    m_pcRNG(NULL),
@@ -95,7 +151,7 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
    const std::string& strRobotId = GetId();
    m_unRobotId = FromString<UInt16>(strRobotId.substr(1));
    m_unTupleCount = 0; 
-   // m_cMySM.Init(m_unRobotId);
+   m_cMySM.Init(m_unRobotId);
    ProcessOutMsgs();
 }
 
@@ -145,38 +201,29 @@ void CCollectivePerception::ControlStep()
    /* Move */
    Diffuse();
 
-   /* Get camera readings */
-   const CCI_CameraSensor::SInterface::TVector& tInterfaces = m_pcCamera->GetInterfaces();
-   CCI_CameraSensorPointCloudDetectorAlgorithm* pAlgorithm = 
-   &dynamic_cast<CCI_CameraSensorPointCloudDetectorAlgorithm&>(*tInterfaces[0].Algorithms[0]);
-   const std::vector<CCI_CameraSensorPointCloudDetectorAlgorithm::SReading>& tReadings = pAlgorithm->GetReadings();
-
-   if(tReadings.size() > 0){
-      LOG << "Robot " << m_unRobotId << std::endl;
-      LOG << tReadings[0].Category << " at " << tReadings[0].Center << std::endl;
-      for (auto corner : tReadings[0].Corners)
-      {
-         LOG << corner << std::endl;
-      }
-   }
-
    /* Record events */
    std::queue<SEventData> sEvents = RecordEvents();   
+
+   /* Write events into swarmmesh */
    while(!sEvents.empty())
    {
+      LOG << "Event" << std::endl;
       /* Retrieve event to write in SwarmMesh */
       SEventData sEvent = sEvents.front();
       sEvents.pop();
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
-      // m_cMySM.Put(sEvent);
+      m_cMySM.Put(sEvent);
    }
 
    /* Tell SwarmMesh to queue messages for routing data */
-   // m_cMySM.Route();
+   m_cMySM.Route();
 
    /* Process outgoing messages */
    ProcessOutMsgs();
+
+   /* Update clock */
+   ++m_unClock;
 
 }
 
@@ -186,6 +233,33 @@ void CCollectivePerception::ControlStep()
 std::queue<SEventData> CCollectivePerception::RecordEvents() 
 {
    std::queue<SEventData> sEvents;
+   
+   /* Time out on recording events */
+   if (m_unClock < m_unTimeLastRecording + RECORDING_TIMEOUT) 
+      return sEvents;
+
+   /* Get camera readings */
+   const CCI_CameraSensor::SInterface::TVector& tInterfaces = m_pcCamera->GetInterfaces();
+   CCI_CameraSensorPointCloudDetectorAlgorithm* pAlgorithm = 
+   &dynamic_cast<CCI_CameraSensorPointCloudDetectorAlgorithm&>(*tInterfaces[0].Algorithms[0]);
+   const std::vector<CCI_CameraSensorPointCloudDetectorAlgorithm::SReading>& tReadings = pAlgorithm->GetReadings();
+
+   for (auto reading : tReadings)
+   {
+      SEventData event;
+      event.Type = reading.Category;
+      float fRadius = sqrt(2) / 2 * Distance(reading.Center, reading.Corners[0]);
+      event.Payload = SPointCloud(fRadius, reading.Category);
+      event.Location = {reading.Center.GetX(), reading.Center.GetY(), reading.Center.GetZ()};
+      sEvents.push(event);
+      m_unTimeLastRecording = m_unClock;
+   }
+
+   
+   if(tReadings.size() > 0){
+      LOG << "Robot " << m_unRobotId << std::endl;
+      LOG << tReadings[0].Category << " at " << tReadings[0].Center << std::endl;
+   }
 
    return sEvents;
 }
@@ -196,7 +270,7 @@ std::queue<SEventData> CCollectivePerception::RecordEvents()
 void CCollectivePerception::ProcessInMsgs()
 {
 
-   // m_cMySM.ResetNeighbors();
+   m_cMySM.ResetNeighbors();
 
    const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
 
@@ -212,15 +286,15 @@ void CCollectivePerception::ProcessInMsgs()
       sNeighbor.Bearing = tPackets[i].HorizontalBearing;
       m_vecNeighbors.push_back(sNeighbor);
       /* Record neighbor to SwarmMesh */
-      // m_cMySM.AddNeighbor(unRobotId,
-      //                     sNeighbor.Distance,
-      //                     sNeighbor.Bearing.GetValue());
+      m_cMySM.AddNeighbor(unRobotId,
+                          sNeighbor.Distance,
+                          sNeighbor.Bearing.GetValue());
       /* Convert CByteArray to STL vector */
       std::vector<std::uint8_t> vecBuffer;
       while(cData.Size()) vecBuffer.push_back((uint8_t) cData.PopFront<uint8_t>());
       /* Process swarmmesh messages */
       size_t offset = 0;
-      // m_cMySM.Deserialize(vecBuffer, offset);
+      m_cMySM.Deserialize(vecBuffer, offset);
    }
 
 }
@@ -234,10 +308,10 @@ void CCollectivePerception::ProcessOutMsgs()
    std::vector<uint8_t> vecBuffer;
 
    /* Pre-pend robot id to any message*/
-   // swarmmesh::PackUInt16(vecBuffer, m_unRobotId);
+   swarmmesh::PackUInt16(vecBuffer, m_unRobotId);
 
    /* Fill buffer with swarmmesh messages */
-   // m_cMySM.Serialize(vecBuffer);
+   m_cMySM.Serialize(vecBuffer);
 
    /* Convert stl vector to CByteArray */
    CByteArray cBuffer;

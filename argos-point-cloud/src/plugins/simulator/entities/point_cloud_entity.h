@@ -33,105 +33,105 @@ namespace argos {
 
    public:
    
-      /* NYU-D v2 labels */
-      enum ECategory {
-         BAG = 0,
-         BATHTUB,
-         BED,
-         BLINDS,
-         BOX,
-         BOOKS,
-         BOOKSHELF,
-         CABINET,
-         CEILING,
-         CHAIR,
-         CLOTHES,
-         COUNTER,
-         CURTAIN,
-         DESK,
-         DOOR,
-         DRESSER,
-         FLOOR,
-         FLOOR_MAT,
-         FRIDGE,
-         FURNITURE,
-         LAMP,
-         MIRROR,
-         NIGHT_STAND,
-         PAPER,
-         PERSON,
-         PICTURE,
-         PILLOW,
-         PROP,
-         SHELVES,
-         SHOWER,
-         SHOWER_CURTAIN,
-         SINK,
-         SOFA,
-         STRUCTURE,
-         TABLE,
-         TELEVISION,
-         TOILET,
-         TOWEL,
-         WALL,
-         WHITEBOARD,
-         WINDOW,
-         UNKNOWN
-      };
+      // /* NYU-D v2 labels */
+      // enum ECategory {
+      //    BAG = 0,
+      //    BATHTUB,
+      //    BED,
+      //    BLINDS,
+      //    BOX,
+      //    BOOKS,
+      //    BOOKSHELF,
+      //    CABINET,
+      //    CEILING,
+      //    CHAIR,
+      //    CLOTHES,
+      //    COUNTER,
+      //    CURTAIN,
+      //    DESK,
+      //    DOOR,
+      //    DRESSER,
+      //    FLOOR,
+      //    FLOOR_MAT,
+      //    FRIDGE,
+      //    FURNITURE,
+      //    LAMP,
+      //    MIRROR,
+      //    NIGHT_STAND,
+      //    PAPER,
+      //    PERSON,
+      //    PICTURE,
+      //    PILLOW,
+      //    PROP,
+      //    SHELVES,
+      //    SHOWER,
+      //    SHOWER_CURTAIN,
+      //    SINK,
+      //    SOFA,
+      //    STRUCTURE,
+      //    TABLE,
+      //    TELEVISION,
+      //    TOILET,
+      //    TOWEL,
+      //    WALL,
+      //    WHITEBOARD,
+      //    WINDOW,
+      //    UNKNOWN
+      // };
 
-      /* String switch paradigm */
-      struct categoryMap : public std::map<std::string, ECategory>
-      {
-         categoryMap()
-         {
-            this->operator[]("bag") =  BAG;
-            this->operator[]("bathtub") = BATHTUB;
-            this->operator[]("bed") = BED;
-            this->operator[]("blinds") =  BLINDS;
-            this->operator[]("box") =  BOX;
-            this->operator[]("books") = BOOKS;
-            this->operator[]("bookshelf") = BOOKSHELF;
-            this->operator[]("cabinet") = CABINET;
-            this->operator[]("ceiling") = CEILING;
-            this->operator[]("chair") = CHAIR;
-            this->operator[]("clothes") = CLOTHES;
-            this->operator[]("counter") = COUNTER;
-            this->operator[]("curtain") = CURTAIN;
-            this->operator[]("desk") =  DESK;
-            this->operator[]("door") = DOOR;
-            this->operator[]("dresser") = DRESSER;            
-            this->operator[]("floor") =  FLOOR;
-            this->operator[]("floor mat") = FLOOR_MAT;
-            this->operator[]("fridge") = FRIDGE;
-            this->operator[]("furniture") =  FURNITURE;
-            this->operator[]("lamp") = LAMP;
-            this->operator[]("mirror") = MIRROR;
-            this->operator[]("night stand") =  NIGHT_STAND;
-            this->operator[]("paper") = PAPER;
-            this->operator[]("person") = PERSON;
-            this->operator[]("picture") =  PICTURE;
-            this->operator[]("pillow") = PILLOW;
-            this->operator[]("prop") = PROP;            
-            this->operator[]("shelves") = SHELVES;
-            this->operator[]("shower") = SHOWER;            
-            this->operator[]("shower curtain") =  SHOWER_CURTAIN;
-            this->operator[]("sink") = SINK;
-            this->operator[]("sofa") = SOFA;
-            this->operator[]("structure") =  STRUCTURE;
-            this->operator[]("table") = TABLE;
-            this->operator[]("television") = TELEVISION;
-            this->operator[]("toilet") =  TOILET;
-            this->operator[]("towel") = TOWEL;
-            this->operator[]("wall") = WALL;
-            this->operator[]("whiteboard") =  WHITEBOARD;
-            this->operator[]("window") = WINDOW;
-            this->operator[]("unknown") = UNKNOWN; 
-            this->operator[]("") = UNKNOWN;           
-         };
+      // /* String switch paradigm */
+      // struct categoryMap : public std::map<std::string, ECategory>
+      // {
+      //    categoryMap()
+      //    {
+      //       this->operator[]("bag") =  BAG;
+      //       this->operator[]("bathtub") = BATHTUB;
+      //       this->operator[]("bed") = BED;
+      //       this->operator[]("blinds") =  BLINDS;
+      //       this->operator[]("box") =  BOX;
+      //       this->operator[]("books") = BOOKS;
+      //       this->operator[]("bookshelf") = BOOKSHELF;
+      //       this->operator[]("cabinet") = CABINET;
+      //       this->operator[]("ceiling") = CEILING;
+      //       this->operator[]("chair") = CHAIR;
+      //       this->operator[]("clothes") = CLOTHES;
+      //       this->operator[]("counter") = COUNTER;
+      //       this->operator[]("curtain") = CURTAIN;
+      //       this->operator[]("desk") =  DESK;
+      //       this->operator[]("door") = DOOR;
+      //       this->operator[]("dresser") = DRESSER;            
+      //       this->operator[]("floor") =  FLOOR;
+      //       this->operator[]("floor mat") = FLOOR_MAT;
+      //       this->operator[]("fridge") = FRIDGE;
+      //       this->operator[]("furniture") =  FURNITURE;
+      //       this->operator[]("lamp") = LAMP;
+      //       this->operator[]("mirror") = MIRROR;
+      //       this->operator[]("night stand") =  NIGHT_STAND;
+      //       this->operator[]("paper") = PAPER;
+      //       this->operator[]("person") = PERSON;
+      //       this->operator[]("picture") =  PICTURE;
+      //       this->operator[]("pillow") = PILLOW;
+      //       this->operator[]("prop") = PROP;            
+      //       this->operator[]("shelves") = SHELVES;
+      //       this->operator[]("shower") = SHOWER;            
+      //       this->operator[]("shower curtain") =  SHOWER_CURTAIN;
+      //       this->operator[]("sink") = SINK;
+      //       this->operator[]("sofa") = SOFA;
+      //       this->operator[]("structure") =  STRUCTURE;
+      //       this->operator[]("table") = TABLE;
+      //       this->operator[]("television") = TELEVISION;
+      //       this->operator[]("toilet") =  TOILET;
+      //       this->operator[]("towel") = TOWEL;
+      //       this->operator[]("wall") = WALL;
+      //       this->operator[]("whiteboard") =  WHITEBOARD;
+      //       this->operator[]("window") = WINDOW;
+      //       this->operator[]("unknown") = UNKNOWN; 
+      //       this->operator[]("") = UNKNOWN;           
+      //    };
 
-         ~categoryMap(){}
+      //    ~categoryMap(){}
 
-      };
+      // };
 
    public:
 
@@ -146,7 +146,7 @@ namespace argos {
                  const CVector3& c_position,
                  const CQuaternion& c_orientation,
                  const CVector3& c_size,
-                 ECategory e_category = UNKNOWN,
+                 std::string str_category = "unknown",
                  CColor c_color = CColor::BLACK);
 
       virtual ~CPointCloudEntity() {}
@@ -179,12 +179,12 @@ namespace argos {
          return m_arrBackFaceCorners;
       }
 
-      inline ECategory GetCategory() const {
-         return m_eCategory;
+      inline std::string GetCategory() const {
+         return m_strCategory;
       }
 
-      inline void SetCategory(ECategory e_category) {
-         m_eCategory = e_category;
+      inline void SetCategory(std::string str_category) {
+         m_strCategory = str_category;
       }
 
       inline CColor GetColor() const {
@@ -228,7 +228,7 @@ namespace argos {
 
       CEmbodiedEntity*    m_pcEmbodiedEntity;
       CVector3            m_cSize;
-      ECategory           m_eCategory;
+      std::string         m_strCategory;
       CColor              m_cColor;
       CPointCloudMedium*  m_pcPointCloudMedium;
       std::array<CVector3, 4> m_arrFrontFaceCorners;

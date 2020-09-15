@@ -15,6 +15,7 @@ namespace argos {
 #include <argos3/core/utility/math/vector2.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 #include <array>
+#include <string>
 #include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
 #ifdef ARGOS_WITH_LUA
@@ -34,7 +35,7 @@ namespace argos {
 
       struct SReading {
          /* Category of the point cloud */
-         CPointCloudEntity::ECategory Category;
+         std::string Category;
          /* Coordinates of the center of the bounding box 
           * in 3D */
          CVector3 Center;
@@ -43,14 +44,14 @@ namespace argos {
          std::array<CVector3, 8> Corners;
          /**
           * Constructor
-          * @param e_category Point cloud category
+          * @param str_category Point cloud category
           * @param c_center Center of the bounding box
           * @param c_corners Corners of the bounding box
           */
-         SReading(const CPointCloudEntity::ECategory& e_category,
+         SReading(const std::string& str_category,
                   const CVector3& c_center,
                   const std::array<CVector3, 8>& c_corners) :
-            Category(e_category),
+            Category(str_category),
             Center(c_center),
             Corners(c_corners) {}
       };

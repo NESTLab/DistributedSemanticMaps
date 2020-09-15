@@ -16,6 +16,8 @@ public:
    virtual ~CPointCloudQTUserFunctions() {}
 
    void Draw(CFootBotEntity& c_entity);
+
+   void DrawInWorld();
    
 };
 

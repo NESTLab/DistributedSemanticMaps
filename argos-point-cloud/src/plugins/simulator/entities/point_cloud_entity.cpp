@@ -31,7 +31,7 @@ namespace argos {
                           const CVector3& c_position,
                           const CQuaternion& c_orientation,
                           const CVector3& c_size,
-                          ECategory e_category,
+                          std::string str_category,
                           CColor c_color) :
       CComposableEntity(NULL, str_id),
       m_pcEmbodiedEntity(
@@ -41,7 +41,7 @@ namespace argos {
                              c_orientation,
                              false)),
       m_cSize(c_size),
-      m_eCategory(e_category),
+      m_strCategory(str_category),
       m_cColor(c_color),
       m_pcPointCloudMedium(NULL) {
       AddComponent(*m_pcEmbodiedEntity);
@@ -123,9 +123,8 @@ namespace argos {
          /* Parse XML to get the size */
          GetNodeAttribute(t_tree, "size", m_cSize);
          /* Parse XML to get the category attribute */  
-         std::string strCategory;       
-         GetNodeAttribute(t_tree, "category", strCategory);
-         m_eCategory = categoryMap() [strCategory];
+         GetNodeAttribute(t_tree, "category", m_strCategory);
+         // m_eCategory = categoryMap() [strCategory];
          /* Parse XML to get the mass */
          GetNodeAttribute(t_tree, "color", m_cColor);
          /* Create embodied entity using parsed data */
@@ -159,7 +158,7 @@ namespace argos {
    /****************************************/
 
    void CPointCloudEntity::Reset() {
-      m_eCategory = ECategory::UNKNOWN;
+      m_strCategory = "unknown";
       m_cColor = CColor::BLACK;
       /* Reset all components */
       CComposableEntity::Reset();

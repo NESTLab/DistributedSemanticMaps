@@ -1,4 +1,5 @@
 #include "point_cloud_qtuser_functions.h"
+#include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
 /****************************************/
 /****************************************/
@@ -11,11 +12,7 @@ CPointCloudQTUserFunctions::CPointCloudQTUserFunctions() {
 /****************************************/
 
 void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
-   /* The position of the text is expressed wrt the reference point of the footbot
-    * For a foot-bot, the reference point is the center of its base.
-    * See also the description in
-    * $ argos3 -q foot-bot
-    */
+
    CCollectivePerception& cController = dynamic_cast<CCollectivePerception&>(c_entity.GetControllableEntity().GetController());
    // UInt32 unNodeKey = cController.GetNodeKey();
    // CKheperaPointCloud::TStoringQueue tStoringQueue = cController.GetStoringQueue();
@@ -73,7 +70,20 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
    //    cPos += CVector3(0.0, 0.0, 0.1);
    //    tRoutingQueue.pop_back();
    // }
+}
 
+void CPointCloudQTUserFunctions::DrawInWorld() {
+
+   CSpace& cSpace = CSimulator::GetInstance().GetSpace();
+   CSpace::TMapPerType& tPCMap = cSpace.GetEntitiesByType("point_cloud");
+
+   for(CSpace::TMapPerType::iterator it = tPCMap.begin();
+       it != tPCMap.end();
+       ++it) {
+      CPointCloudEntity& cPC = *any_cast<CPointCloudEntity*>(it->second);
+      DrawText(cPC.GetEmbodiedEntity().GetOriginAnchor().Position + CVector3(.0,.0,.5),
+               cPC.GetId());
+   }
 }
 
 /****************************************/

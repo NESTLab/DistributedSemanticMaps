@@ -15,50 +15,87 @@
 #include <argos3/core/utility/logging/argos_log.h>
 #include <argos3/core/utility/math/rng.h>
 
-// #include "/home/nathalie/Documents/Research/SwarmMesh/src/swarmmesh/swarmmesh.h"
+/* TODO: install include directories */
+#include "/home/nathalie/Documents/Research/SwarmMesh/src/swarmmesh/swarmmesh.h"
 
 #include <queue>
 #include <sstream>
 
 /* TODO: make this configurable */
-const uint16_t BUCKET_SIZE = 10;
-const argos::Real BLOB_SENSOR_RANGE = 100;
+const uint16_t BUCKET_SIZE = 5;
+const uint16_t RECORDING_TIMEOUT = 10;
 
 /****************************************/
 /****************************************/
 
-// class CMySwarmMesh;
+class CMySwarmMesh;
 class CCollectivePerception;
-// class CHashEventDataType;
+class CHashEventDataType;
 
 /****************************************/
 /****************************************/
+
+using namespace argos;
+
+/* Structure representing the point cloud */
+struct SPointCloud {
+
+   // /* Center of point cloud */
+   // SLocation Center;
+
+   /* Radius of sphere enclosing bounding box */
+   float Radius;
+   /* Object category */
+   std::string Category;
+
+   /* Default constructor */
+   SPointCloud() {}
+
+   /* Parameterized constructor */
+   SPointCloud(float radius,
+   std::string cat) : Category(cat), Radius(radius) {}
+
+   /* Copy operator */
+   SPointCloud& operator=(const SPointCloud s_pc) {
+      Radius = s_pc.Radius;
+      Category = s_pc.Category;
+   }
+};
+
 
 /* Structure representing location */
 struct SLocation {
    float X;
    float Y;
+   float Z;
 
    /* Default constructor */
-   SLocation() {}
+   SLocation() = default;
 
-   /* Parameterized constructor */
-   SLocation(float f_x, float f_y) : X(f_x), Y(f_y) {}
+   /**
+    * Construct a new SLocation object
+    * 
+    * @param f_x 
+    * @param f_y 
+    * @param f_z 
+    */
+   SLocation(float f_x, float f_y, float f_z) : X(f_x), Y(f_y), Z(f_z) {}
 
    /* Copy operator */
-      SLocation& operator=(const SLocation& s_location) {
-         X = s_location.X;
-         Y = s_location.Y;
-         return *this;
-      }
+   SLocation& operator=(const SLocation& s_location) {
+      X = s_location.X;
+      Y = s_location.Y;
+      Z = s_location.Z;
+      return *this;
+   }
 };
 
 /* Structure representing events */
 struct SEventData {
-   /* Type of event encoded as a color */
+   /* Type of event */
    std::string Type;
    /* Value associated to the event */
-   float Payload;
+   SPointCloud Payload;
    /* Spatial location of the event */
    SLocation Location;
 };
@@ -66,43 +103,42 @@ struct SEventData {
 /****************************************/
 /****************************************/
 
-// SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset);
+SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset);
 
-// void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_value);
+void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_value);
 
 /****************************************/
 /****************************************/
 
-// class CHashEventDataType {
+class CHashEventDataType {
 
-//    private:
-//    uint16_t m_unRobotId = 0;
-//    uint16_t m_unTupleCount = 0;
+   private:
+   uint16_t m_unRobotId = 0;
+   uint16_t m_unTupleCount = 0;
    
+   public:
+      CHashEventDataType() : 
+         m_unRobotId(0),
+         m_unTupleCount(0) {}
 
-//    public:
-//       CHashEventDataType() : 
-//          m_unRobotId(0),
-//          m_unTupleCount(0) {}
+      void Init(uint16_t un_robot_id) {m_unRobotId = un_robot_id;}
+      swarmmesh::SKey operator()(SEventData& s_value);
+};
 
-//       void Init(uint16_t un_robot_id) {m_unRobotId = un_robot_id;}
-//       swarmmesh::SKey operator()(SEventData& s_value);
-// };
+class CMySwarmMesh : public swarmmesh::CSwarmMesh<SEventData> {
+private:
+   CHashEventDataType m_cHashEvent;
 
-// class CMySwarmMesh : public swarmmesh::CSwarmMesh<SEventData> {
-// private:
-//    CHashEventDataType m_cHashEvent;
-
-// public:
-//    CMySwarmMesh() :
-//       CSwarmMesh(UnpackEventDataType,
-//                  PackEventDataType) {}
-//    void Init(uint16_t un_robot_id);
+public:
+   CMySwarmMesh() :
+      CSwarmMesh(UnpackEventDataType,
+                 PackEventDataType) {}
+   void Init(uint16_t un_robot_id);
    
-//    ~CMySwarmMesh() {
-//    }
+   ~CMySwarmMesh() {
+   }
 
-// };
+};
 
 using namespace argos;
 
@@ -195,6 +231,10 @@ public:
 
    std::vector<SNeighbor> m_vecNeighbors;
 
+   /* Internal clock */
+   UInt16 m_unClock;
+   UInt16 m_unTimeLastRecording;
+
    /* The robot numeric id */
    UInt16 m_unRobotId;
 
@@ -205,7 +245,7 @@ public:
    CRandom::CRNG* m_pcRNG;
 
    /* Data structure object */
-   // CMySwarmMesh m_cMySM; 
+   CMySwarmMesh m_cMySM; 
 
    /* Returns the list of events recorded by the robot
       at the current time step */
@@ -213,7 +253,7 @@ public:
 
    /* Returns world coordinates for a point given its coordinate relative 
    to this robot */
-   // CVector2 ComputeAbsolutePosition(const CVector2& c_coordTuple);
+   CVector2 ComputeAbsolutePosition(const CVector2& c_coordTuple);
 
    void ProcessInMsgs();
 

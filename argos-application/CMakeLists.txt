@@ -26,6 +26,9 @@ if(LUA52_FOUND)
    include_directories(${LUA_INCLUDE_DIR})
 endif(LUA52_FOUND)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(swarm_mesh_library REQUIRED)
 if(swarm_mesh_library_FOUND)
   message( "${swarm_mesh_library_INCLUDE_DIRS}")

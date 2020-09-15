@@ -94,8 +94,8 @@ namespace argos {
             }
 
             CVector3 cCenter = c_pointCloud.GetEmbodiedEntity().GetOriginAnchor().Position;
-            const CPointCloudEntity::ECategory& eCategory = c_pointCloud.GetCategory();
-            m_cAlgorithm.AddReading(eCategory, cCenter, m_arrBoundingBoxCorners);
+            const std::string& strCategory = c_pointCloud.GetCategory();
+            m_cAlgorithm.AddReading(strCategory, cCenter, m_arrBoundingBoxCorners);
             return true;
          }
 
@@ -128,10 +128,10 @@ namespace argos {
          }
       }
 
-      void AddReading(const CPointCloudEntity::ECategory& e_category,
+      void AddReading(const std::string& str_category,
                       const CVector3& c_center,
                       const std::array<CVector3, 8>& arr_corners) {
-         m_vecReadings.emplace_back(e_category, c_center, arr_corners);
+         m_vecReadings.emplace_back(str_category, c_center, arr_corners);
       }
 
       /**

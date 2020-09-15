@@ -57,7 +57,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                  strCategory == "unknown" ||strCategory == "") continue;
 
                 /* Get enum category from string */
-                CPointCloudEntity::ECategory eCategory = CPointCloudEntity::categoryMap()[strCategory];
+                // CPointCloudEntity::ECategory eCategory = CPointCloudEntity::categoryMap()[strCategory];
 
                 /* Get bounding box coordinates */
                 std::vector<Real> vecBox;
@@ -79,7 +79,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                     // CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
                     CQuaternion(vecBox[6], vecBox[7], vecBox[8], vecBox[9]), // orientation
                     CVector3(vecBox[3], vecBox[4], vecBox[5]), //size
-                    eCategory, // category 
+                    strCategory, // category 
                     CColor(vecColor[0], vecColor[1], vecColor[2]) // color
                     );
 
