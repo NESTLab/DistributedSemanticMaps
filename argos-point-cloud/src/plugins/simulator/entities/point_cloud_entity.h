@@ -195,6 +195,10 @@ namespace argos {
          m_cColor = c_color;
       }
 
+      inline size_t GetNumCategories() const {
+         return m_unNumCategories;
+      }
+
       void SetEnabled(bool b_enabled);
 
       virtual std::string GetTypeDescription() const {
@@ -233,6 +237,7 @@ namespace argos {
       CPointCloudMedium*  m_pcPointCloudMedium;
       std::array<CVector3, 4> m_arrFrontFaceCorners;
       std::array<CVector3, 4> m_arrBackFaceCorners;
+      size_t m_unNumCategories;
 
       void CalculateFaceCorners();
 

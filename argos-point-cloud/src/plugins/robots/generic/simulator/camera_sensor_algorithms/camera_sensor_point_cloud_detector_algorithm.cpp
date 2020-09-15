@@ -33,10 +33,28 @@ namespace argos {
          /* Get tag medium from id specified in the XML */
          std::string strMedium;
          GetNodeAttribute(t_tree, "medium", strMedium);
+         
+         std::string strFileName;
+         GetNodeAttribute(t_tree, "file", strFileName);
          m_pcPointCloudIndex = &(CSimulator::GetInstance().GetMedium<CPointCloudMedium>(strMedium).GetIndex());
+      
+         std::ifstream ifDistributionFile(strFileName);
+         std::vector<double> vecProbabilities;
+         if (ifDistributionFile.is_open()) {
+            std::string strData;
+            while (getline(ifDistributionFile, strData)) {
+               vecProbabilities.push_back(std::stod(strData));
+            }
+            ifDistributionFile.close();
+         } else {
+            THROW_ARGOSEXCEPTION("Probability distribution file not found")
+         }
+         m_probPosteriorDistribution = std::discrete_distribution<int>(vecProbabilities.begin(), vecProbabilities.end());
+         m_dNumSamples = static_cast<double>(vecProbabilities.size());
+         m_pcRNG = CRandom::CreateRNG("argos");
       }
       catch(CARGoSException& ex) {
-         THROW_ARGOSEXCEPTION_NESTED("Error initializing the tag detector algorithm", ex);
+         THROW_ARGOSEXCEPTION_NESTED("Error initializing the point cloud detector algorithm", ex);
       }
    }
 
