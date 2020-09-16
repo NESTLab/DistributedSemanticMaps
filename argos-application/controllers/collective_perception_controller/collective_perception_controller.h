@@ -16,7 +16,7 @@
 #include <argos3/core/utility/math/rng.h>
 
 /* TODO: install include directories */
-#include "/home/nathalie/Documents/Research/SwarmMesh/src/swarmmesh/swarmmesh.h"
+#include "/home/daniel/NestLab/SwarmMeshLibrary/src/swarmmesh/swarmmesh.h"
 
 #include <queue>
 #include <sstream>

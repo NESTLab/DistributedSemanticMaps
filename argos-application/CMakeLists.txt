@@ -21,10 +21,10 @@ if(GALIB_FOUND)
 endif(GALIB_FOUND)
 
 # Find Lua
-find_package(Lua52 REQUIRED)
+find_package(Lua53 REQUIRED)
 if(LUA52_FOUND)
    include_directories(${LUA_INCLUDE_DIR})
-endif(LUA52_FOUND)
+endif(LUA53_FOUND)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

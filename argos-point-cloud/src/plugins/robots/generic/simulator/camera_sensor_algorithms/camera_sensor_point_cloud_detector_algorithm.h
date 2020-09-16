@@ -25,6 +25,7 @@ namespace argos {
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <unordered_map>
 #include <random>
 
 namespace argos {
@@ -59,7 +60,6 @@ namespace argos {
          virtual ~CUpdateOperation() {}
          /* operation */
          virtual bool operator()(CPointCloudEntity& c_pointCloud) {
-
             // if(GetAngleWithCamera(c_tag) > c_tag.GetObservableAngle()) {
             //    return true;
             // }
@@ -106,11 +106,10 @@ namespace argos {
                                  / m_cAlgorithm.m_dNumSamples;
             double dSampleAccuracy = m_cAlgorithm.m_pcRNG->Uniform(CRange<double>(0.0, 1.0));
 
-	         const std::string& strCategory = c_pointCloud.GetCategory();
+	         std::string strCategory = c_pointCloud.GetCategory();
             if (dSampleAccuracy > dAccuracy) {
-               /* TODO */
-		         //static_cast<CPointCloudEntity::ECategory>(
-               //  m_cAlgorithm.m_pcRNG->Uniform(CRange<UInt32>(0, c_pointCloud.GetNumCategories() + 1)));
+               strCategory = m_cAlgorithm.m_mapCategory.at(
+                  m_cAlgorithm.m_mapIncorrectProbDistribution[strCategory](m_cAlgorithm.m_randEngine));
             }
 
             m_cAlgorithm.AddReading(strCategory, cCenter, m_arrBoundingBoxCorners);
@@ -175,6 +174,34 @@ namespace argos {
       std::default_random_engine m_randEngine;
       double m_dNumSamples;
       CRandom::CRNG* m_pcRNG;
+
+      /**
+       * Map of probability distributions over all incorrect predictions for each class
+       * 
+       */
+      std::unordered_map<std::string, std::discrete_distribution<int>> m_mapIncorrectProbDistribution;
+      
+      const std::unordered_map<int, std::string> InitMapCategory() {
+         return std::unordered_map<int, std::string>({
+            {0, "bag"},
+            {1, "bin"},
+            {2, "box"},
+            {3, "cabinet"},
+            {4, "chair"},
+            {5, "desk"},
+            {6, "display"},
+            {7, "door"}, 
+            {8, "shelf"},
+            {9, "table"},
+            {10, "bed"},
+            {11, "pillow"},
+            {12, "sink"},
+            {13, "sofa"},
+            {14, "toilet"},
+            {15, "unknown"}
+         });
+      }
+      const std::unordered_map<int, std::string> m_mapCategory = InitMapCategory();
    };
 }         
 

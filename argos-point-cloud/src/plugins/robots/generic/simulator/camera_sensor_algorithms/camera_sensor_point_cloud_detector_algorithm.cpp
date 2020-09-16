@@ -34,13 +34,13 @@ namespace argos {
          std::string strMedium;
          GetNodeAttribute(t_tree, "medium", strMedium);
          
-         std::string strFileName;
-         GetNodeAttribute(t_tree, "file", strFileName);
+         std::string strDistributionFileName;
+         GetNodeAttribute(t_tree, "distribution_file", strDistributionFileName);
          m_pcPointCloudIndex = &(CSimulator::GetInstance().GetMedium<CPointCloudMedium>(strMedium).GetIndex());
-      
-         std::ifstream ifDistributionFile(strFileName);
+           
          std::vector<double> vecProbabilities;
-         if (ifDistributionFile.is_open()) {
+         if (std::ifstream ifDistributionFile(strDistributionFileName);
+            ifDistributionFile.is_open()) {
             std::string strData;
             while (getline(ifDistributionFile, strData)) {
                vecProbabilities.push_back(std::stod(strData));
@@ -52,6 +52,34 @@ namespace argos {
          m_probPosteriorDistribution = std::discrete_distribution<int>(vecProbabilities.begin(), vecProbabilities.end());
          m_dNumSamples = static_cast<double>(vecProbabilities.size());
          m_pcRNG = CRandom::CreateRNG("argos");
+
+
+         std::string strConfusionMatrixFileName;
+         GetNodeAttribute(t_tree, "confusion_matrix_file", strConfusionMatrixFileName);
+
+         if (std::ifstream ifConfusionMatrixFile(strConfusionMatrixFileName);
+            ifConfusionMatrixFile.is_open()) {
+            std::string strData;
+            int iLineNum = 0;
+            while (getline(ifConfusionMatrixFile, strData)) {
+               std::istringstream isData(strData);
+               std::vector<double> vecData = std::vector<double>(std::istream_iterator<double>(isData), 
+                                                   std::istream_iterator<double>());
+               vecData[iLineNum] = 0.0;
+               double dSum = 0.0;
+               for (double dVal : vecData) {
+                  dSum += dVal;
+               }
+               for (size_t i = 0; i < vecData.size(); i++) {
+                  vecData[i] /= dSum;
+               }
+               m_mapIncorrectProbDistribution[m_mapCategory.at(iLineNum)] = std::discrete_distribution<int>(vecData.begin(), vecData.end());
+               iLineNum++;
+            }
+            ifConfusionMatrixFile.close();
+         } else {
+            THROW_ARGOSEXCEPTION("Confusion Matrix File not found");
+         }
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error initializing the point cloud detector algorithm", ex);

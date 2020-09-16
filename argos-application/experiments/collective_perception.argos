@@ -33,7 +33,9 @@
           <camera id="fixed_camera" range="0.025:1" resolution="1280,720"
                   anchor="origin" position="0.08,0,0.1" orientation="-90,80,0"
                   focal_length="884,884" principal_point="320,180">
-            <point_cloud_detector medium="point_clouds" show_rays="true" file="../data/BGA-DGCNN.txt"/>
+            <point_cloud_detector medium="point_clouds" show_rays="true" 
+              distribution_file="../data/distributions/BGA-DGCNN.txt"
+              confusion_matrix_file="../data/confusion_matrix/BGA-DGCNN.txt"/>
           </camera>
         </cameras>
 
