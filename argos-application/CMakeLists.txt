@@ -21,25 +21,30 @@ if(GALIB_FOUND)
 endif(GALIB_FOUND)
 
 # Find Lua
-find_package(Lua53 REQUIRED)
-if(LUA52_FOUND)
+find_package(Lua "5.3" REQUIRED)
+if(LUA_FOUND)
    include_directories(${LUA_INCLUDE_DIR})
-endif(LUA53_FOUND)
+endif(LUA_FOUND)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(swarm_mesh_library REQUIRED)
-if(swarm_mesh_library_FOUND)
-  message( "${swarm_mesh_library_INCLUDE_DIRS}")
-  include_directories(${SwarmMeshLibrary_INCLUDE_DIRS})
-endif(swarm_mesh_library_FOUND)
+# find_package(swarm_mesh_library REQUIRED)
+# if(swarm_mesh_library_FOUND)
+#   message("Includes for swarmmesh")
+#   message("${swarm_mesh_library_INCLUDE_DIRS}")
+#   include_directories(${swarm_mesh_library_INCLUDE_DIRS})
+# endif(swarm_mesh_library_FOUND)
+
+set(SWARMMESH_INCLUDE_DIR "/usr/local/include/SwarmMeshLibrary/")
+set(SWARMMESH_LIBRARY_DIR "/usr/local/lib/SwarmMeshLibrary/")
 
 # Set ARGoS include dir
-include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${LUA_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} ${SWARMMESH_INCLUDE_DIR})
+
 
 # Set ARGoS link dir
-link_directories(${ARGOS_LIBRARY_DIRS})
+link_directories(${ARGOS_LIBRARY_DIRS} ${SWARMMESH_LIBRARY_DIR})
 
 
 # Descend into the controllers directory

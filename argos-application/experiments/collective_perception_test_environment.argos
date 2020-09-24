@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="200"
+    <experiment length="400"
                 ticks_per_second="10"
                 random_seed="1" />
   </framework>
@@ -25,19 +25,20 @@
       <sensors>
         <footbot_proximity implementation="default" show_rays="false" /> 
         <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
-        <positioning implementation="default"/>
+        <positioning implementation="default" pos_noise_range="-0.1:0.2"/>
 
         <cameras implementation="default" show_frustum="true">
           <camera id="fixed_camera" range="0.025:1" resolution="1280,720"
                   anchor="origin" position="0.08,0,0.1" orientation="-90,80,0"
                   focal_length="884,884" principal_point="320,180">
             <point_cloud_detector medium="point_clouds" show_rays="true"
-                                  file="../data/BGA-DGCNN.txt"/>
+                                  distribution_file="../data/distributions/BGA-DGCNN.txt"
+                                  confusion_matrix_file="../data/confusion_matrix/BGA-DGCNN.txt"/>
           </camera>
         </cameras>
 
       </sensors>
-      <params alpha="7.5" delta="0.1" velocity="5" />
+      <params alpha="7.5" delta="0.1" velocity="10" />
     </collective_perception_controller>
 
   </controllers>
@@ -68,12 +69,12 @@
     
     <point_cloud id="item1" size="0.2,0.2,0.2" category="bag" color="254,0,0,1"
                   medium="point_clouds">
-      <body position="-1.5,1,0" orientation="90,0,0"/>
+      <body position="-1.5,1,0" orientation="20,0,0"/>
     </point_cloud>
 
     <point_cloud id="item2" size="1,0.6,0.2" category="bed" color="0,254,0,1"
                   medium="point_clouds">
-      <body position="-2.1,0,0" orientation="90,0,0"/>
+      <body position="-2,0,0" orientation="270,0,0"/>
     </point_cloud>
 
     <point_cloud id="item3" size="0.6,0.8,0.5" category="table" color="0,0,255,1"
@@ -93,7 +94,7 @@
 
     <point_cloud id="item6" size="0.2,0.2,0.2" category="display" color="40,210,0,1"
                   medium="point_clouds">
-      <body position="2,1,0" orientation="0,0,0"/>
+      <body position="2,1,0" orientation="200,0,0"/>
     </point_cloud>
 
     <point_cloud id="item7" size="0.2,0.2,0.2" category="toilet" color="254,0,0,1"
@@ -103,12 +104,12 @@
 
     <point_cloud id="item8" size="1,0.4,0.2" category="sofa" color="0,254,0,1"
                   medium="point_clouds">
-      <body position="2.1,-1,0" orientation="90,90,0"/>
+      <body position="2.1,-1,0" orientation="270,90,0"/>
     </point_cloud>
 
     <point_cloud id="item9" size="0.6,0.8,0.5" category="shelf" color="0,100,100,1"
                   medium="point_clouds">
-      <body position="2,2,0" orientation="0,0,0"/>
+      <body position="2,2,0" orientation="180,0,0"/>
     </point_cloud>
 
     <point_cloud id="item10" size="0.3,0.3,0.6" category="door" color="100,158,47,1"
@@ -138,7 +139,7 @@
 
     <point_cloud id="item15" size="0.6,0.5,0.6" category="desk" color="130,50,20,1"
                   medium="point_clouds">
-      <body position="1.5,-2,0" orientation="0,0,0"/>
+      <body position="1.5,-2,0" orientation="90,0,0"/>
     </point_cloud>
 
     <point_cloud id="item16" size="0.4,0.4,0.8" category="chair" color="0,255,255,1"
@@ -149,8 +150,8 @@
     <distribute>
       <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="10" max_trials="100" base_num="1">
-        <foot-bot id="K" rab_data_size="570" rab_range="2">
+      <entity quantity="30" max_trials="100" base_num="1">
+        <foot-bot id="K" rab_data_size="1000" rab_range="2">
           <controller config="knc" />
         </foot-bot>
       </entity>

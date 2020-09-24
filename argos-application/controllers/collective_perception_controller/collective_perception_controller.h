@@ -15,15 +15,18 @@
 #include <argos3/core/utility/logging/argos_log.h>
 #include <argos3/core/utility/math/rng.h>
 
-/* TODO: install include directories */
-#include "/home/daniel/NestLab/SwarmMeshLibrary/src/swarmmesh/swarmmesh.h"
+#include <swarmmesh.h>
+//#include "/home/daniel/NestLab/SwarmMeshLibrary/src/swarmmesh/swarmmesh.h"
 
 #include <queue>
 #include <sstream>
+#include <unordered_map>
 
 /* TODO: make this configurable */
 const uint16_t BUCKET_SIZE = 5;
 const uint16_t RECORDING_TIMEOUT = 10;
+const uint16_t QUERY_TIMEOUT = 200;
+const float CONSOLIDATION_QUOTA = 2;
 
 /****************************************/
 /****************************************/
@@ -31,6 +34,8 @@ const uint16_t RECORDING_TIMEOUT = 10;
 class CMySwarmMesh;
 class CCollectivePerception;
 class CHashEventDataType;
+class CTypeFilter;
+class CLocationFilter;
 
 /****************************************/
 /****************************************/
@@ -100,6 +105,8 @@ struct SEventData {
    SLocation Location;
 };
 
+typedef typename swarmmesh::CSwarmMesh<SEventData>::STuple STuple;
+
 /****************************************/
 /****************************************/
 
@@ -132,13 +139,60 @@ private:
 public:
    CMySwarmMesh() :
       CSwarmMesh(UnpackEventDataType,
-                 PackEventDataType) {}
+                 PackEventDataType) {
+                    RegisterFilter<CTypeFilter>(this);
+                    RegisterFilter<CLocationFilter>(this);
+                 }
    void Init(uint16_t un_robot_id);
    
    ~CMySwarmMesh() {
    }
 
 };
+
+/****************************************/
+/****************************************/
+/* User Defined Filters */
+
+/**
+ * Functor to filter tuples according to their type
+ * 
+ */
+class CTypeFilter : public swarmmesh::CSwarmMesh<SEventData>::CFilterOperation {
+   private:
+      std::string m_strEventType;
+   public: 
+      CTypeFilter(swarmmesh::CSwarmMesh<SEventData>* pc_sm) : 
+         swarmmesh::CSwarmMesh<SEventData>::CFilterOperation(pc_sm) {}
+      
+      ~CTypeFilter() {}
+      bool operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple&) override;
+      void Serialize(std::vector<uint8_t>&) override;
+      size_t Deserialize(const std::vector<uint8_t>&, size_t) override;
+      void Init(const std::unordered_map<std::string, std::any>&) override;
+      std::unordered_map<std::string, std::any> GetParams() override;
+};
+
+/**
+ * Functor to filter tuples according to their location
+ * 
+ */
+class CLocationFilter : public swarmmesh::CSwarmMesh<SEventData>::CFilterOperation {
+   private:
+      SLocation m_sEventLocation;
+      float m_fRadius;
+   public: 
+      CLocationFilter(swarmmesh::CSwarmMesh<SEventData>* pc_sm) : 
+         swarmmesh::CSwarmMesh<SEventData>::CFilterOperation(pc_sm) {}
+      
+      ~CLocationFilter() {}
+      bool operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple&) override;
+      void Serialize(std::vector<uint8_t>&) override;
+      size_t Deserialize(const std::vector<uint8_t>&, size_t) override;
+      void Init(const std::unordered_map<std::string, std::any>&) override;
+      std::unordered_map<std::string, std::any> GetParams() override;
+};
+
 
 using namespace argos;
 
@@ -234,6 +288,7 @@ public:
    /* Internal clock */
    UInt16 m_unClock;
    UInt16 m_unTimeLastRecording;
+   UInt16 m_unTimeLastQuery;
 
    /* The robot numeric id */
    UInt16 m_unRobotId;
@@ -250,6 +305,9 @@ public:
    /* Returns the list of events recorded by the robot
       at the current time step */
    std::queue<SEventData> RecordEvents();
+
+   /* Queries SwarmMesh based on its own tuples*/
+   void RequestObservations();
 
    /* Returns world coordinates for a point given its coordinate relative 
    to this robot */

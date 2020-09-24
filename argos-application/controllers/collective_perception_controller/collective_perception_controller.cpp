@@ -2,7 +2,6 @@
 #include <argos3/plugins/robots/generic/control_interface/ci_camera_sensor_point_cloud_detector_algorithm.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_camera_sensor_algorithm.h>
 
-
 /****************************************/
 /****************************************/
 
@@ -15,22 +14,17 @@
  */
 SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& un_offset) {
   
-   // LOG << vec_buffer.size() << " " << un_offset << std::endl;
    SEventData sValue;
    
    sValue.Type = swarmmesh::UnpackString(vec_buffer, un_offset);
-   // LOG << sValue.Type << std::endl;
 
    sValue.Payload = {swarmmesh::UnpackFloat(vec_buffer, un_offset),
                      swarmmesh::UnpackString(vec_buffer, un_offset)};
-
-   // LOG << sValue.Payload.Radius << std::endl;
 
    sValue.Location = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
                      swarmmesh::UnpackFloat(vec_buffer, un_offset),
                      swarmmesh::UnpackFloat(vec_buffer, un_offset)};
 
-   // LOG << sValue.Location.X << " " << sValue.Location.Y << std::endl;
    return sValue;
 }
 
@@ -94,6 +88,8 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    else if(strCategory  ==  "bed") {unHash = 1 + 12 * BUCKET_SIZE;}
    else if(strCategory  ==  "bag") {unHash = 1 + 13 * BUCKET_SIZE;}
    else if(strCategory  ==  "box") {unHash = 1 + 14 * BUCKET_SIZE;}
+   /* Consolidated observation */
+   else if (strCategory == "collective_label") {unHash = 1 + 15 * BUCKET_SIZE;}
    else  unHash = 0;
 
    /* Unique tuple identifier based on robot id and 
@@ -112,9 +108,73 @@ void CMySwarmMesh::Init(uint16_t un_robotId) {
 /****************************************/
 /****************************************/
 
+std::unordered_map<std::string, std::any> CTypeFilter::GetParams() {
+   std::unordered_map<std::string, std::any> mapFilterParams;
+   mapFilterParams["type"] = m_strEventType;
+   return mapFilterParams;
+}
+
+void CTypeFilter::Init(const std::unordered_map<std::string, std::any>& map_filterParams) {
+   m_strEventType = std::any_cast<std::string>(map_filterParams.at("type"));
+}
+
+bool CTypeFilter::operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple& s_tuple) {
+   return s_tuple.Value.Type == m_strEventType;
+}
+
+void CTypeFilter::Serialize(std::vector<uint8_t>& vec_buffer) {
+   swarmmesh::PackString(vec_buffer, m_strEventType);
+}
+
+size_t CTypeFilter::Deserialize(const std::vector<uint8_t>& vec_buffer, size_t un_offset) {
+   m_strEventType = swarmmesh::UnpackString(vec_buffer, un_offset);
+   return un_offset;
+}
+
+/****************************************/
+/****************************************/
+
+std::unordered_map<std::string, std::any> CLocationFilter::GetParams() {
+   std::unordered_map<std::string, std::any> mapFilterParams;
+   mapFilterParams["radius"] = m_fRadius;
+   mapFilterParams["location"] = m_sEventLocation;
+   return mapFilterParams;
+}
+
+void CLocationFilter::Init(const std::unordered_map<std::string, std::any>& map_filterParams) {
+   m_fRadius = std::any_cast<float>(map_filterParams.at("radius"));
+   m_sEventLocation = std::any_cast<SLocation>(map_filterParams.at("location"));
+}
+
+bool CLocationFilter::operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple& s_tuple) {
+   CVector3 cEventCoord = CVector3(m_sEventLocation.X, m_sEventLocation.Y, m_sEventLocation.Z);
+   CVector3 cTupleCoord = CVector3(s_tuple.Value.Location.X, s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
+
+   return Distance(cEventCoord, cTupleCoord) <= m_fRadius;
+}
+
+void CLocationFilter::Serialize(std::vector<uint8_t>& vec_buffer) {
+   swarmmesh::PackFloat(vec_buffer, m_fRadius);
+   swarmmesh::PackFloat(vec_buffer, m_sEventLocation.X);
+   swarmmesh::PackFloat(vec_buffer, m_sEventLocation.Y);
+   swarmmesh::PackFloat(vec_buffer, m_sEventLocation.Z);
+}
+
+size_t CLocationFilter::Deserialize(const std::vector<uint8_t>& vec_buffer, size_t un_offset) {
+   m_fRadius = swarmmesh::UnpackFloat(vec_buffer, un_offset);
+   m_sEventLocation = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
+                       swarmmesh::UnpackFloat(vec_buffer, un_offset),
+                       swarmmesh::UnpackFloat(vec_buffer, un_offset)};
+   return un_offset;
+}
+
+/****************************************/
+/****************************************/
+
 CCollectivePerception::CCollectivePerception() :
    m_unClock(0),
    m_unTimeLastRecording(0),
+   m_unTimeLastQuery(0),
    m_pcWheels(NULL),
    m_pcProximity(NULL),
    m_pcRNG(NULL),
@@ -207,7 +267,6 @@ void CCollectivePerception::ControlStep()
    /* Write events into swarmmesh */
    while(!sEvents.empty())
    {
-      LOG << "Event" << std::endl;
       /* Retrieve event to write in SwarmMesh */
       SEventData sEvent = sEvents.front();
       sEvents.pop();
@@ -215,6 +274,9 @@ void CCollectivePerception::ControlStep()
       /* Perform a put operation in SwarmMesh */
       m_cMySM.Put(sEvent);
    }
+
+   /* Request observations from SwarmMesh */
+   RequestObservations();
 
    /* Tell SwarmMesh to queue messages for routing data */
    m_cMySM.Route();
@@ -244,24 +306,124 @@ std::queue<SEventData> CCollectivePerception::RecordEvents()
    &dynamic_cast<CCI_CameraSensorPointCloudDetectorAlgorithm&>(*tInterfaces[0].Algorithms[0]);
    const std::vector<CCI_CameraSensorPointCloudDetectorAlgorithm::SReading>& tReadings = pAlgorithm->GetReadings();
 
+   /* Go through readings */
    for (auto reading : tReadings)
    {
+      /* Create event */
       SEventData event;
+      /* Write observed category as tuple type*/
       event.Type = reading.Category;
-      float fRadius = sqrt(2) / 2 * Distance(reading.Center, reading.Corners[0]);
+      /* Compute sphere radius as corner to center distance */
+      float fRadius = Distance(reading.Center, reading.Corners[0]);
+      /* Record category and radius as payload */
       event.Payload = SPointCloud(fRadius, reading.Category);
       event.Location = {reading.Center.GetX(), reading.Center.GetY(), reading.Center.GetZ()};
+      /* Add to queue of events*/
       sEvents.push(event);
+      /* Save current time for recording time-out */
       m_unTimeLastRecording = m_unClock;
    }
 
-   
+   /* Debugging info */
    if(tReadings.size() > 0){
-      LOG << "Robot " << m_unRobotId << std::endl;
-      LOG << tReadings[0].Category << " at " << tReadings[0].Center << std::endl;
+      LOG << m_strId << " sees " << tReadings[0].Category << " at " << tReadings[0].Center << std::endl;
    }
 
    return sEvents;
+}
+
+/****************************************/
+/****************************************/
+
+
+void CCollectivePerception::RequestObservations()
+{
+   /* Vector of stored tuples sorted in descending order 
+      of data importance */
+   std::vector<STuple>& vecTuples = m_cMySM.StoredTuples();
+   
+   /* Minimum number of observations in a given locations to 
+      trigger a query on the shared memory */
+   UInt16 unMinLocalObservations = 2;//Round(CONSOLIDATION_QUOTA * vecTuples.size());
+
+   //    LOG << m_strId << " Num tuples" << vecTuples.size() << std::endl;
+
+   /* No requests if zero threshold */
+   // if(unMinLocalObservations == 0 || (m_unClock < m_unTimeLastQuery + QUERY_TIMEOUT)) return;
+   if(m_unClock < m_unTimeLastQuery + QUERY_TIMEOUT) return;
+
+   if(vecTuples.size() == 0) return;
+
+   // LOG << "Num tuples" << vecTuples.size() << std::endl;
+   // LOG << "Threshold" << unMinLocalObservations << std::endl;
+
+   auto it = vecTuples.begin();
+   /* Exclude consolidated observations */
+   while (it->Key.Hash > 1 + 14 * BUCKET_SIZE && it != vecTuples.end()) ++it;
+   /* No requests if no raw observations */
+   if (it == vecTuples.end()) return;
+
+   std::unordered_map<std::string, std::any> mapFilterParams;
+
+   // if(unMinLocalObservations == 1)
+   // {
+   //    return;
+
+   //    // /* Create spatial request for tuple of most important type */
+   //    // STuple sTuple = *it;
+   //    // float fRadius = sTuple.Value.Payload.Radius;
+   //    // SLocation sLocation(sTuple.Value.Location);
+   //    // mapFilterParams["radius"] = fRadius;
+   //    // mapFilterParams["location"] = sLocation;
+   //    // m_cMySM.Filter(1, mapFilterParams);
+   //    // LOG << fRadius << std::endl;
+   //    // LOG << "Made request for " << sTuple.Value.Type << "because min 1 " << std::endl;
+   //    // m_unTimeLastQuery = m_unClock;
+   //    // return;
+   // }
+
+   while (it != vecTuples.end())
+   {
+      STuple sTuple = *it;
+      float fRadius = sTuple.Value.Payload.Radius;
+      SLocation sLocation(sTuple.Value.Location);
+      /* Look for at least unMinLocalObservations
+         in the region of the tuple */
+      auto found = it;
+      uint16_t count = 0;
+      while(found != vecTuples.end())
+      {
+         /* Check if distance within object radius */
+         /* TODO: maybe replace by noise bound, 
+         will cause problem for objects with longer side */
+         found = std::find_if(found, vecTuples.end(),
+         [sTuple] (const STuple& s_tuple) { 
+            CVector3 cTupleLocation(sTuple.Value.Location.X, 
+            sTuple.Value.Location.Y, sTuple.Value.Location.Z);
+            CVector3 cOtherLocation(s_tuple.Value.Location.X,
+            s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
+            return Distance(cTupleLocation, cOtherLocation) <= 0.3;}//sTuple.Value.Payload.Radius; }
+         );
+         if(found == vecTuples.end()) return;
+         ++count;
+         ++found;
+      } 
+      /* If we have found at least as many observations as min*/
+      if(count >= unMinLocalObservations) 
+      {
+         float fRadius = 0.3; // override radius, noise under 0.3
+         /* Create spatial request for tuple of most important type */
+         mapFilterParams["radius"] = fRadius;  // noise under 0.3 
+         mapFilterParams["location"] = sLocation;
+         m_cMySM.Filter(1, mapFilterParams);
+         // LOG << fRadius << std::endl;
+         LOG << m_strId << " made request for " << sTuple.Value.Type <<std::endl;
+         m_unTimeLastQuery = m_unClock;
+         return;
+      }
+      ++it;
+   }
+
 }
 
 /****************************************/

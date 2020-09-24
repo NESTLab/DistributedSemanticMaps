@@ -83,6 +83,11 @@ void CPointCloudQTUserFunctions::DrawInWorld() {
       CPointCloudEntity& cPC = *any_cast<CPointCloudEntity*>(it->second);
       DrawText(cPC.GetEmbodiedEntity().GetOriginAnchor().Position + CVector3(.0,.0,.5),
                cPC.GetId());
+
+      for (auto corner : cPC.GetFrontCorners())
+      {
+         DrawPoint(corner);
+      }
    }
 }
 
