@@ -100,9 +100,9 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    return swarmmesh::SKey(unHash, unIdentifier);
 }
 
-void CMySwarmMesh::Init(uint16_t un_robotId) {
+void CMySwarmMesh::Init(uint16_t un_robotId, uint16_t un_rabSize) {
    m_cHashEvent.Init(un_robotId);
-   CSwarmMesh::Init(un_robotId, m_cHashEvent); 
+   CSwarmMesh::Init(un_robotId, m_cHashEvent, un_rabSize); 
 }
 
 /****************************************/
@@ -211,7 +211,8 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
    const std::string& strRobotId = GetId();
    m_unRobotId = FromString<UInt16>(strRobotId.substr(1));
    m_unTupleCount = 0; 
-   m_cMySM.Init(m_unRobotId);
+   uint16_t unMsgSize = m_pcRABA->GetSize();
+   m_cMySM.Init(m_unRobotId, unMsgSize);
    ProcessOutMsgs();
 }
 

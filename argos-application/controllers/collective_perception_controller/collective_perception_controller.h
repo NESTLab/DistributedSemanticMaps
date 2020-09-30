@@ -143,7 +143,7 @@ public:
                     RegisterFilter<CTypeFilter>(this);
                     RegisterFilter<CLocationFilter>(this);
                  }
-   void Init(uint16_t un_robot_id);
+   void Init(uint16_t un_robot_id, uint16_t un_msgSize);
    
    ~CMySwarmMesh() {
    }
