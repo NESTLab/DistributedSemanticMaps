@@ -31,33 +31,40 @@ CPointCloudQTUserFunctions::CPointCloudQTUserFunctions() {
 void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
 
    CCollectivePerception& cController = dynamic_cast<CCollectivePerception&>(c_entity.GetControllableEntity().GetController());
+
+   /* Get controller variables */
    uint16_t unNodeID = cController.GetNodeID();
    std::vector<STuple> tStoringQueue = cController.m_cMySM.StoredTuples();
    std::vector<STuple> tRoutingQueue = cController.m_cMySM.RoutingTuples();
+   // std::unordered_map<uint32_t, std::unordered_map<std::string, std::any>> mapQueries = cController.m_cMySM.m_mapQueries;
 
    /* Draw RId */
    DrawText(CVector3(-0.1, 0, 0.1),   // position
             c_entity.GetId()); // text
 
-   /* Draw NodeKey */
+   /* Draw NodeID */
    CColor cColor;
    uint16_t idx = unNodeID / BUCKET_SIZE;
    if (idx > 15) idx = 15;
    cColor = COLOR_TABLE[idx];
    DrawText(CVector3(-0.1, 0, 0.2),   // position
             (ToString(unNodeID)).c_str(),
-            cColor); // text
+            cColor, QFont("Calibri", 18, QFont::Bold)); // text
 
    CVector3 cPos(0, 0, 0.3);
    std::string strText;
    STuple sTuple;
+
    /* Draw Stored Tuples Queue */
    while(!tStoringQueue.empty())
    {
       sTuple = tStoringQueue.back();
-      strText = "(" + ToString(sTuple.Key.Hash) + "|" 
-                 + ToString(sTuple.Key.Identifier) + ", " 
-                 + ToString(sTuple.Value.Payload.Category) + ")";
+      strText = "[" + ToString(sTuple.Key.Hash) + ", " 
+                 + ToString(sTuple.Value.Payload.Category) + ", (" 
+                 + ToString(sTuple.Value.Location.X) + ","
+                 + ToString(sTuple.Value.Location.Y) + ","
+                 + ToString(sTuple.Value.Location.Z) + ")"
+                 + "]";
       cColor = COLOR_TABLE[(sTuple.Key.Hash - 1)/BUCKET_SIZE];
       DrawText(cPos,
             strText.c_str(),
@@ -72,13 +79,13 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
               cColor);
      cPos += CVector3(0.0, 0.0, 0.1);
    }
+
    /* Draw Routing Queue */
    while(!tRoutingQueue.empty())
    {
       sTuple = tRoutingQueue.back();
-      strText = "(" + ToString(sTuple.Key.Hash) + "|" 
-                 + ToString(sTuple.Key.Identifier) + ", " 
-                 + ToString(sTuple.Value.Payload.Category) + ")";
+      strText = "[" + ToString(sTuple.Key.Hash) + ", " 
+                 + ToString(sTuple.Value.Payload.Category) + "]";
       cColor = COLOR_TABLE[(sTuple.Key.Hash - 1)/BUCKET_SIZE];
       DrawText(cPos,
             strText.c_str(),
@@ -86,6 +93,9 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
       cPos += CVector3(0.0, 0.0, 0.1);
       tRoutingQueue.pop_back();
    }
+
+   /* Draw Requests */
+   /* TO DO ?*/
 }
 
 void CPointCloudQTUserFunctions::DrawInWorld() {

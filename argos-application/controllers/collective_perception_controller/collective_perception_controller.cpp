@@ -259,7 +259,7 @@ void CCollectivePerception::ControlStep()
    /* Process incoming messages */
    ProcessInMsgs();
 
-   /* Move */git 
+   /* Move */
    Diffuse();
 
    /* Record events */
@@ -274,6 +274,7 @@ void CCollectivePerception::ControlStep()
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
       m_cMySM.Put(sEvent);
+      LOG << "Put as new observation" << std::endl;
    }
 
    /* Request observations from SwarmMesh */
@@ -402,9 +403,10 @@ void CCollectivePerception::RequestObservations()
          /* Save query */
          uint32_t unQueryId = m_cMySM.Filter((uint8_t) 1, mapFilterParams);
          m_mapQueries[unQueryId] = mapFilterParams;
-         m_mapQueryTimings[unQueryId] = STimingInfo(m_unClock, UInt16(0));
+         m_mapQueryTimings[unQueryId] = STimingInfo(m_unClock, m_unClock);
 
-         LOG << m_strId << " made request for " << sTuple.Value.Type <<std::endl;
+         LOG << m_strId << " made request for (" <<  sLocation.X << ", " 
+         << sLocation.Y << ", " << sLocation.Z << ")" << std::endl;
          m_unTimeLastQuery = m_unClock;
          return;
       }
@@ -428,33 +430,48 @@ void CCollectivePerception::AggregateObservations()
       /* Ignore timed-out queries */
       if(m_unClock - m_mapQueryTimings[*it].Start > QUERY_TIMEOUT) continue;
 
-      /* If received results */
+      /* If query results available */
       if(mapResults.count(*it) != 0)
       {
+         /* If received new results to query */
+         if (m_mapQueryTimings[*it].NumReplies != mapResults[*it].size()) {
+            m_mapQueryTimings[*it].NumReplies = mapResults[*it].size();
+            m_mapQueryTimings[*it].LastUpdate = m_unClock;
+            SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
+            LOG << "Got result for query for (" << sLoc.X << ", " <<
+            sLoc.Y << ", " << sLoc.Z << ")" << std::endl; 
+         }
+
          /* No more expected results? */
-         if(m_mapQueryTimings[*it].LastUpdate != 0 &&
-            m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT)
+         if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
+            && m_mapQueryTimings[*it].Done == false)
          {
             /* Delete the observations used */
             m_cMySM.Erase(1, m_mapQueries[*it]);
+
             /* Get location from emitted query */
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
+
             LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
             sLoc.Y << ", " <<  sLoc.Z << std::endl;
-            /* Write consolidated prediction */;
-            SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
-            LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
-            << " for (" << sEvent.Location.X << ", " <<
-            sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
-            << (int) sEvent.Payload.Radius << " observations" << std::endl;
+            
+            LOG << "THIS IS NOT WORKING" << std::endl;
 
-            m_cMySM.Put(sEvent);
-            /* Zero out last update to avoid consolidating again */
-            m_mapQueryTimings[*it].LastUpdate = 0;
+            // /* Write consolidated prediction */;
+            // SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
+
+            // LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
+            // << " for (" << sEvent.Location.X << ", " <<
+            // sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
+            // << (int) sEvent.Payload.Radius << " observations" << std::endl;
+
+            // m_cMySM.Put(sEvent);
+
+            /* Avoid consolidating again */
+            m_mapQueryTimings[*it].Done = true;
+
          }
-         else {
-            m_mapQueryTimings[*it].LastUpdate = m_unClock;
-         }
+         
       }
 
    }
@@ -498,7 +515,7 @@ SEventData CCollectivePerception::ConsolidateObservations(
    /* */
    sEvent.Type = "collective_label";
    /* */
-   sEvent.Payload = SPointCloud(vec_tuples.size(), strConsolidated);
+   sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated);
    /* Location */
    sEvent.Location = s_loc;
    return sEvent;

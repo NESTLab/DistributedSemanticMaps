@@ -26,7 +26,7 @@
 const uint16_t BUCKET_SIZE = 5;
 const uint16_t RECORDING_TIMEOUT = 30;
 const uint16_t QUERY_TIMEOUT = 200;
-const uint16_t UPDATE_TIMEOUT = 30;
+const uint16_t UPDATE_TIMEOUT = 10;
 const float CONSOLIDATION_QUOTA = 2;
 const float NOISE_THRESHOLD = 0.3;
 
@@ -285,11 +285,13 @@ public:
             return (RId == x.RId);}
    };
 
-   /* Structure */
+   /* Structure for keeping track of query replies */
    struct STimingInfo
    {
       UInt16 Start;
       UInt16 LastUpdate;
+      size_t NumReplies;
+      bool Done = false;
       STimingInfo() {}
       STimingInfo(UInt16 un_start, UInt16 un_update) :
          Start(un_start), LastUpdate(un_update) {}
@@ -297,12 +299,19 @@ public:
 
    /*TODO: make private and add getters*/
 
-   std::vector<SNeighbor> m_vecNeighbors;
+   /* Data structure object */
+   CMySwarmMesh m_cMySM; 
 
-   /* Internal clock */
-   UInt16 m_unClock;
-   UInt16 m_unTimeLastRecording;
-   UInt16 m_unTimeLastQuery;
+   /* Get node ID */
+   inline uint16_t GetNodeID() {return m_cMySM.Partition();} 
+
+   /* Map of query id to query */
+   std::unordered_map<uint32_t, std::unordered_map<std::string, std::any>> m_mapQueries;
+
+   /* Map of query id to timing info */
+   std::unordered_map<uint32_t, STimingInfo> m_mapQueryTimings;
+
+private:
 
    /* The robot numeric id */
    UInt16 m_unRobotId;
@@ -313,20 +322,12 @@ public:
    /* Pointer to random number generator */
    CRandom::CRNG* m_pcRNG;
 
-   /* Data structure object */
-   CMySwarmMesh m_cMySM; 
+   std::vector<SNeighbor> m_vecNeighbors;
 
-   /* Get node ID */
-   inline uint16_t GetNodeID() {return m_cMySM.Partition();} 
-
-   /* Map of query id to query */
-   std::unordered_map<uint32_t, 
-   std::unordered_map<std::string, std::any>> m_mapQueries;
-
-   /* Map of query id to timing info */
-   std::unordered_map<uint32_t, STimingInfo> m_mapQueryTimings;
-
-private:
+   /* Internal clock */
+   UInt16 m_unClock;
+   UInt16 m_unTimeLastRecording;
+   UInt16 m_unTimeLastQuery;
 
    /* Returns the list of events recorded by the robot
       at the current time step */
