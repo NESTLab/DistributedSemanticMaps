@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="400"
+    <experiment length="100"
                 ticks_per_second="10"
                 random_seed="1" />
   </framework>
@@ -27,7 +27,8 @@
         <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
         <positioning implementation="default" pos_noise_range="-0.1:0.2"/>
 
-        <cameras implementation="default" show_frustum="true">
+        <cameras implementation="default"> 
+        <!-- show_frustum="true"> -->
           <camera id="fixed_camera" range="0.025:1" resolution="1280,720"
                   anchor="origin" position="0.08,0,0.1" orientation="-90,80,0"
                   focal_length="884,884" principal_point="320,180">
@@ -38,7 +39,7 @@
         </cameras>
 
       </sensors>
-      <params alpha="7.5" delta="0.1" velocity="10" />
+      <params alpha="7.5" delta="0.1" velocity="5" />
     </collective_perception_controller>
 
   </controllers>

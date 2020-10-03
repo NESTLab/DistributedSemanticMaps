@@ -18,13 +18,11 @@
 
     <collective_perception_controller id="knc"
                                   library="build/controllers/collective_perception_controller/libcollective_perception_controller.so">
-      
       <actuators>
         <footbot_turret implementation="default"/>
         <differential_steering implementation="default" />
         <range_and_bearing implementation="default" check_occlusions="false"/>
       </actuators>
-
       <sensors>
         <footbot_proximity implementation="default" show_rays="false" /> 
         <range_and_bearing implementation="medium" medium="rab"/>
@@ -40,10 +38,9 @@
               confusion_matrix_file="../data/confusion_matrix/BGA-DGCNN.txt"/>
           </camera>
         </cameras>
+
       </sensors>
-
       <params alpha="7.5" delta="0.1" velocity="5" />
-
     </collective_perception_controller>
 
   </controllers>
@@ -51,12 +48,9 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-
-  <loop_functions library="build/loop_functions/lib_point_cloud_loop_functions.so"
-                  label="point_cloud_loop_functions">
-
-      <point_cloud />
-
+  <loop_functions library="build/loop_functions/libscenenn_point_cloud_loop_functions.so"
+                  label="scenenn_point_cloud_loop_functions">
+      <point_cloud input_file="../data/005/005.xml"/>
   </loop_functions>
 
   <!-- *********************** -->

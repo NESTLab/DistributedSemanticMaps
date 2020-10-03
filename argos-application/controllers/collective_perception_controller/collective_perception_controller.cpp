@@ -72,7 +72,7 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    std::string strCategory = s_value.Type;
 
    /* Data hashing based on point cloud type */
-   uint32_t unHash;
+   uint16_t unHash;
    if(strCategory == "chair") {unHash = 1;}
    else if(strCategory == "door") {unHash = 1 + 1 * BUCKET_SIZE;}
    else if(strCategory == "sofa") {unHash = 1 + 2 * BUCKET_SIZE;}
@@ -259,7 +259,7 @@ void CCollectivePerception::ControlStep()
    /* Process incoming messages */
    ProcessInMsgs();
 
-   /* Move */
+   /* Move */git 
    Diffuse();
 
    /* Record events */
@@ -278,6 +278,9 @@ void CCollectivePerception::ControlStep()
 
    /* Request observations from SwarmMesh */
    RequestObservations();
+
+   /* Process collective data in SwarmMesh*/
+   AggregateObservations();
 
    /* Tell SwarmMesh to queue messages for routing data */
    m_cMySM.Route();
@@ -318,7 +321,8 @@ std::queue<SEventData> CCollectivePerception::RecordEvents()
       float fRadius = Distance(reading.Center, reading.Corners[0]);
       /* Record category and radius as payload */
       event.Payload = SPointCloud(fRadius, reading.Category);
-      event.Location = {reading.Center.GetX(), reading.Center.GetY(), reading.Center.GetZ()};
+      event.Location = {(float) reading.Center.GetX(), (float) reading.Center.GetY(), 
+      (float) reading.Center.GetZ()};
       /* Add to queue of events*/
       sEvents.push(event);
       /* Save current time for recording time-out */
@@ -345,12 +349,9 @@ void CCollectivePerception::RequestObservations()
    
    /* Minimum number of observations in a given locations to 
       trigger a query on the shared memory */
-   UInt16 unMinLocalObservations = 2;//Round(CONSOLIDATION_QUOTA * vecTuples.size());
-
-   //    LOG << m_strId << " Num tuples" << vecTuples.size() << std::endl;
+   UInt16 unMinLocalObservations = CONSOLIDATION_QUOTA;
 
    /* No requests if zero threshold */
-   // if(unMinLocalObservations == 0 || (m_unClock < m_unTimeLastQuery + QUERY_TIMEOUT)) return;
    if(m_unClock < m_unTimeLastQuery + QUERY_TIMEOUT) return;
 
    if(vecTuples.size() == 0) return;
@@ -366,23 +367,6 @@ void CCollectivePerception::RequestObservations()
 
    std::unordered_map<std::string, std::any> mapFilterParams;
 
-   // if(unMinLocalObservations == 1)
-   // {
-   //    return;
-
-   //    // /* Create spatial request for tuple of most important type */
-   //    // STuple sTuple = *it;
-   //    // float fRadius = sTuple.Value.Payload.Radius;
-   //    // SLocation sLocation(sTuple.Value.Location);
-   //    // mapFilterParams["radius"] = fRadius;
-   //    // mapFilterParams["location"] = sLocation;
-   //    // m_cMySM.Filter(1, mapFilterParams);
-   //    // LOG << fRadius << std::endl;
-   //    // LOG << "Made request for " << sTuple.Value.Type << "because min 1 " << std::endl;
-   //    // m_unTimeLastQuery = m_unClock;
-   //    // return;
-   // }
-
    while (it != vecTuples.end())
    {
       STuple sTuple = *it;
@@ -394,16 +378,14 @@ void CCollectivePerception::RequestObservations()
       uint16_t count = 0;
       while(found != vecTuples.end())
       {
-         /* Check if distance within object radius */
-         /* TODO: maybe replace by noise bound, 
-         will cause problem for objects with longer side */
+         /* Check if distance within noise radius */
          found = std::find_if(found, vecTuples.end(),
          [sTuple] (const STuple& s_tuple) { 
             CVector3 cTupleLocation(sTuple.Value.Location.X, 
             sTuple.Value.Location.Y, sTuple.Value.Location.Z);
             CVector3 cOtherLocation(s_tuple.Value.Location.X,
             s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
-            return Distance(cTupleLocation, cOtherLocation) <= 0.3;}//sTuple.Value.Payload.Radius; }
+            return Distance(cTupleLocation, cOtherLocation) <= NOISE_THRESHOLD;}
          );
          if(found == vecTuples.end()) return;
          ++count;
@@ -412,12 +394,16 @@ void CCollectivePerception::RequestObservations()
       /* If we have found at least as many observations as min*/
       if(count >= unMinLocalObservations) 
       {
-         float fRadius = 0.3; // override radius, noise under 0.3
+         float fRadius = NOISE_THRESHOLD;
          /* Create spatial request for tuple of most important type */
          mapFilterParams["radius"] = fRadius;  // noise under 0.3 
          mapFilterParams["location"] = sLocation;
-         m_cMySM.Filter(1, mapFilterParams);
-         // LOG << fRadius << std::endl;
+
+         /* Save query */
+         uint32_t unQueryId = m_cMySM.Filter((uint8_t) 1, mapFilterParams);
+         m_mapQueries[unQueryId] = mapFilterParams;
+         m_mapQueryTimings[unQueryId] = STimingInfo(m_unClock, UInt16(0));
+
          LOG << m_strId << " made request for " << sTuple.Value.Type <<std::endl;
          m_unTimeLastQuery = m_unClock;
          return;
@@ -426,6 +412,98 @@ void CCollectivePerception::RequestObservations()
    }
 
 }
+
+void CCollectivePerception::AggregateObservations()
+{
+   /* Get vector of query ids on SwarmMesh */
+   std::deque<uint32_t> vecQueries = m_cMySM.QueryIds();
+
+   /* Get results of queries */
+   std::unordered_map<uint32_t, std::vector<STuple>> mapResults = m_cMySM.QueryResults();
+
+   /* Go through all SwarmMesh active queries */
+   for (auto it = vecQueries.begin();
+        it != vecQueries.end(); ++it)
+   {
+      /* Ignore timed-out queries */
+      if(m_unClock - m_mapQueryTimings[*it].Start > QUERY_TIMEOUT) continue;
+
+      /* If received results */
+      if(mapResults.count(*it) != 0)
+      {
+         /* No more expected results? */
+         if(m_mapQueryTimings[*it].LastUpdate != 0 &&
+            m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT)
+         {
+            /* Delete the observations used */
+            m_cMySM.Erase(1, m_mapQueries[*it]);
+            /* Get location from emitted query */
+            SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
+            LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
+            sLoc.Y << ", " <<  sLoc.Z << std::endl;
+            /* Write consolidated prediction */;
+            SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
+            LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
+            << " for (" << sEvent.Location.X << ", " <<
+            sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
+            << (int) sEvent.Payload.Radius << " observations" << std::endl;
+
+            m_cMySM.Put(sEvent);
+            /* Zero out last update to avoid consolidating again */
+            m_mapQueryTimings[*it].LastUpdate = 0;
+         }
+         else {
+            m_mapQueryTimings[*it].LastUpdate = m_unClock;
+         }
+      }
+
+   }
+}
+
+/****************************************/
+/****************************************/
+
+SEventData CCollectivePerception::ConsolidateObservations(
+   const std::vector<STuple>& vec_tuples, const SLocation& s_loc)
+{
+   /* Majority voting */
+   std::vector<STuple> vecSorted;
+   std::copy(vec_tuples.begin(), vec_tuples.end(), vecSorted.begin());
+   
+   std::sort(vecSorted.begin(), vecSorted.end(),[](STuple const& lhs, STuple const& rhs){
+      std::string strLhs = lhs.Value.Type;
+      std::string strRhs = rhs.Value.Type;
+      int res = strLhs.compare(strRhs);
+      return res < 0;
+   });
+   /* Find most common element in vector */
+   int nCount = 1;
+   int nTopCount = 1;
+   size_t unTopIndex = 0;
+   for (size_t i = 1; i < vecSorted.size() ; ++i)
+   {
+      if(vecSorted[i].Value.Type == vecSorted[i-1].Value.Type) 
+      {
+         ++nCount;
+         if(nCount > nTopCount) 
+         {
+            nTopCount = nCount;
+            unTopIndex = i;
+         }
+      }
+      else nCount = 1;
+   }
+   std::string strConsolidated = vecSorted[unTopIndex].Value.Type;
+   SEventData sEvent;
+   /* */
+   sEvent.Type = "collective_label";
+   /* */
+   sEvent.Payload = SPointCloud(vec_tuples.size(), strConsolidated);
+   /* Location */
+   sEvent.Location = s_loc;
+   return sEvent;
+}
+
 
 /****************************************/
 /****************************************/

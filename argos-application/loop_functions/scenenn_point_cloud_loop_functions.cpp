@@ -1,4 +1,4 @@
-#include "point_cloud_loop_functions.h"
+#include "scenenn_point_cloud_loop_functions.h"
 #include <sstream>
 #include <vector>
 #include <argos3/core/simulator/simulator.h>
@@ -11,7 +11,7 @@
 #include <argos3/plugins/simulator/physics_engines/dynamics2d_point_cloud_model.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_engine.h>
 
-CPointCloudLoopFunctions::CPointCloudLoopFunctions() {}
+CSceneNNPointCloudLoopFunctions::CSceneNNPointCloudLoopFunctions() {}
 
 /* The format of the oriented bounding box is: box center (x, y, z), 
 *  box dimension (along x, y, z), and a quaternion (x, y, z, w) that 
@@ -19,7 +19,7 @@ CPointCloudLoopFunctions::CPointCloudLoopFunctions() {}
 *  are computed using eigen decomposition, so it is only accurate when
 *  the object is elongated enough. */
 
-void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
+void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     
     /* Get xml tags */ 
     TConfigurationNode& tPointCloud = GetNode(t_node, "point_cloud");
@@ -105,64 +105,14 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     }
 }
 
-
-void CPointCloudLoopFunctions::PlaceCluster(const CVector2& c_center,
-                                            UInt32 un_pointClouds,
-                                            Real f_density) {
-   try {
-    //   /* Calculate side of the region in which the robots are scattered */
-    //   Real fHalfSide = Sqrt((FB_AREA * un_robots) / f_density) / 2.0f;
-    //   CRange<Real> cAreaRange(-fHalfSide, fHalfSide);
-    //   /* Place robots */
-    //   UInt32 unTrials;
-    //   CFootBotEntity* pcFB;
-    //   std::ostringstream cFBId;
-    //   CVector3 cFBPos;
-    //   CQuaternion cFBRot;
-    //   /* Create a RNG (it is automatically disposed of by ARGoS) */
-    //   CRandom::CRNG* pcRNG = CRandom::CreateRNG("argos");
-    //   /* For each robot */
-    //   for(size_t i = 0; i < un_robots; ++i) {
-    //      /* Make the id */
-    //      cFBId.str("");
-    //      cFBId << "fb" << (i + un_id_start);
-    //      /* Create the robot in the origin and add it to ARGoS space */
-    //      pcFB = new CFootBotEntity(
-    //         cFBId.str(),
-    //         FB_CONTROLLER);
-    //      AddEntity(*pcFB);
-    //      /* Try to place it in the arena */
-    //      unTrials = 0;
-    //      bool bDone;
-    //      do {
-    //         /* Choose a random position */
-    //         ++unTrials;
-    //         cFBPos.Set(pcRNG->Uniform(cAreaRange) + c_center.GetX(),
-    //                    pcRNG->Uniform(cAreaRange) + c_center.GetY(),
-    //                    0.0f);
-    //         cFBRot.FromAngleAxis(pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-    //                              CVector3::Z);
-    //         bDone = MoveEntity(pcFB->GetEmbodiedEntity(), cFBPos, cFBRot);
-    //      } while(!bDone && unTrials <= MAX_PLACE_TRIALS);
-    //      if(!bDone) {
-    //         THROW_ARGOSEXCEPTION("Can't place " << cFBId.str());
-    //      }
-    //   }
-   }
-   catch(CARGoSException& ex) {
-      THROW_ARGOSEXCEPTION_NESTED("While placing point clouds in a cluster", ex);
-   }
-}
-
-
-void CPointCloudLoopFunctions::SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer) {
+void CSceneNNPointCloudLoopFunctions::SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer) {
     std::vector<std::string> tokens;
     SplitString(str, tokens);
     for (auto token : tokens)
         buffer.push_back(std::atoi(token.c_str()));
 }
 
-void CPointCloudLoopFunctions::SplitStringToReal(std::string str, std::vector<Real>& buffer) {
+void CSceneNNPointCloudLoopFunctions::SplitStringToReal(std::string str, std::vector<Real>& buffer) {
     std::vector<std::string> tokens;
     SplitString(str, tokens);
     std::vector<Real>res;
@@ -171,7 +121,7 @@ void CPointCloudLoopFunctions::SplitStringToReal(std::string str, std::vector<Re
     
 }
 
-void CPointCloudLoopFunctions::SplitString(std::string str, std::vector<std::string>& buffer) {
+void CSceneNNPointCloudLoopFunctions::SplitString(std::string str, std::vector<std::string>& buffer) {
     std::vector<std::string> result; 
     std::istringstream iss(str); 
     for(std::string s; iss >> s; ) 
@@ -182,20 +132,20 @@ void CPointCloudLoopFunctions::SplitString(std::string str, std::vector<std::str
 /****************************************/
 /****************************************/
 
-// void CPointCloudLoopFunctions::Reset() {
+// void CSceneNNPointCloudLoopFunctions::Reset() {
 //    ;
 // }
 
 // /****************************************/
 // /****************************************/
 
-// void CPointCloudLoopFunctions::PreStep() {
+// void CSceneNNPointCloudLoopFunctions::PreStep() {
 //     ;
 // }
 
 /****************************************/
 /****************************************/
-void CPointCloudLoopFunctions::PostStep() {
+void CSceneNNPointCloudLoopFunctions::PostStep() {
 }
 
-REGISTER_LOOP_FUNCTIONS(CPointCloudLoopFunctions, "point_cloud_loop_functions");
+REGISTER_LOOP_FUNCTIONS(CSceneNNPointCloudLoopFunctions, "scenenn_point_cloud_loop_functions");

@@ -16,17 +16,19 @@
 #include <argos3/core/utility/math/rng.h>
 
 #include <swarmmesh.h>
-//#include "/home/daniel/NestLab/SwarmMeshLibrary/src/swarmmesh/swarmmesh.h"
 
 #include <queue>
 #include <sstream>
 #include <unordered_map>
+#include <algorithm>
 
 /* TODO: make this configurable */
 const uint16_t BUCKET_SIZE = 5;
-const uint16_t RECORDING_TIMEOUT = 10;
+const uint16_t RECORDING_TIMEOUT = 30;
 const uint16_t QUERY_TIMEOUT = 200;
+const uint16_t UPDATE_TIMEOUT = 30;
 const float CONSOLIDATION_QUOTA = 2;
+const float NOISE_THRESHOLD = 0.3;
 
 /****************************************/
 /****************************************/
@@ -283,6 +285,18 @@ public:
             return (RId == x.RId);}
    };
 
+   /* Structure */
+   struct STimingInfo
+   {
+      UInt16 Start;
+      UInt16 LastUpdate;
+      STimingInfo() {}
+      STimingInfo(UInt16 un_start, UInt16 un_update) :
+         Start(un_start), LastUpdate(un_update) {}
+   };
+
+   /*TODO: make private and add getters*/
+
    std::vector<SNeighbor> m_vecNeighbors;
 
    /* Internal clock */
@@ -302,12 +316,29 @@ public:
    /* Data structure object */
    CMySwarmMesh m_cMySM; 
 
+   /* Get node ID */
+   inline uint16_t GetNodeID() {return m_cMySM.Partition();} 
+
+   /* Map of query id to query */
+   std::unordered_map<uint32_t, 
+   std::unordered_map<std::string, std::any>> m_mapQueries;
+
+   /* Map of query id to timing info */
+   std::unordered_map<uint32_t, STimingInfo> m_mapQueryTimings;
+
+private:
+
    /* Returns the list of events recorded by the robot
       at the current time step */
    std::queue<SEventData> RecordEvents();
 
-   /* Queries SwarmMesh based on its own tuples*/
+   /* Queries SwarmMesh based on its own tuples */
    void RequestObservations();
+
+   /* Aggregates results of queries on SwarmMesh */
+   void AggregateObservations();
+
+   SEventData ConsolidateObservations(const std::vector<STuple>& vec_tuples, const SLocation& s_loc);
 
    /* Returns world coordinates for a point given its coordinate relative 
    to this robot */

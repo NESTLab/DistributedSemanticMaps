@@ -1,5 +1,5 @@
-#ifndef POINT_CLOUD_LOOP_FUNCTIONS_H
-#define POINT_CLOUD_LOOP_FUNCTIONS_H
+#ifndef SCENENN_POINT_CLOUD_LOOP_FUNCTIONS_H
+#define SCENENN_POINT_CLOUD_LOOP_FUNCTIONS_H
 
 /* The controller */
 #include <controllers/collective_perception_controller/collective_perception_controller.h>
@@ -13,20 +13,17 @@
 
 using namespace argos;
 
-class CPointCloudLoopFunctions : public CLoopFunctions {
+class CSceneNNPointCloudLoopFunctions : public CLoopFunctions {
 
 public:
    
-   CPointCloudLoopFunctions();
-   virtual ~CPointCloudLoopFunctions() {}
+   CSceneNNPointCloudLoopFunctions();
+   virtual ~CSceneNNPointCloudLoopFunctions() {}
 
    virtual void Init(TConfigurationNode& t_node);
    virtual void Reset() {}
    virtual void PreStep() {}
    virtual void PostStep();
-   
-   void PlaceCluster(const CVector2& c_center,UInt32 un_pointClouds,
-                     Real f_density);
 
    void SplitString(std::string str, std::vector<std::string>& buffer);
    void SplitStringToReal(std::string str, std::vector<Real>& buffer);
