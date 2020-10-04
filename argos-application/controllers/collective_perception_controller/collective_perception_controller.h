@@ -240,6 +240,7 @@ public:
 
 private:
 
+
    /* Pointer to the differential steering actuator */
    CCI_DifferentialSteeringActuator* m_pcWheels;
    /* Pointer to the foot-bot proximity sensor */
@@ -311,6 +312,11 @@ public:
    /* Map of query id to timing info */
    std::unordered_map<uint32_t, STimingInfo> m_mapQueryTimings;
 
+   /* Get Message Count */
+   inline UInt16 GetMessageCount() {return m_unMessageCount;}
+
+   inline void SetMessageCount(UInt16 un_message_count) {m_unMessageCount = un_message_count; }
+
 private:
 
    /* The robot numeric id */
@@ -318,6 +324,9 @@ private:
 
    /* Number of recorded events */
    UInt16 m_unTupleCount;
+
+   /* Number of messages sent */
+   UInt16 m_unMessageCount;
 
    /* Pointer to random number generator */
    CRandom::CRNG* m_pcRNG;

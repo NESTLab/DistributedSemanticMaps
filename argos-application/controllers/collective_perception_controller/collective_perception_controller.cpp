@@ -172,6 +172,7 @@ size_t CLocationFilter::Deserialize(const std::vector<uint8_t>& vec_buffer, size
 /****************************************/
 
 CCollectivePerception::CCollectivePerception() :
+   m_unMessageCount(0),
    m_unClock(0),
    m_unTimeLastRecording(0),
    m_unTimeLastQuery(0),
@@ -268,6 +269,7 @@ void CCollectivePerception::ControlStep()
    /* Write events into swarmmesh */
    while(!sEvents.empty())
    {
+      m_unMessageCount++;
       /* Retrieve event to write in SwarmMesh */
       SEventData sEvent = sEvents.front();
       sEvents.pop();
@@ -399,7 +401,6 @@ void CCollectivePerception::RequestObservations()
          /* Create spatial request for tuple of most important type */
          mapFilterParams["radius"] = fRadius;  // noise under 0.3 
          mapFilterParams["location"] = sLocation;
-
          /* Save query */
          uint32_t unQueryId = m_cMySM.Filter((uint8_t) 1, mapFilterParams);
          m_mapQueries[unQueryId] = mapFilterParams;
@@ -422,7 +423,6 @@ void CCollectivePerception::AggregateObservations()
 
    /* Get results of queries */
    std::unordered_map<uint32_t, std::vector<STuple>> mapResults = m_cMySM.QueryResults();
-
    /* Go through all SwarmMesh active queries */
    for (auto it = vecQueries.begin();
         it != vecQueries.end(); ++it)
@@ -433,6 +433,7 @@ void CCollectivePerception::AggregateObservations()
       /* If query results available */
       if(mapResults.count(*it) != 0)
       {
+
          /* If received new results to query */
          if (m_mapQueryTimings[*it].NumReplies != mapResults[*it].size()) {
             m_mapQueryTimings[*it].NumReplies = mapResults[*it].size();
@@ -441,7 +442,6 @@ void CCollectivePerception::AggregateObservations()
             LOG << "Got result for query for (" << sLoc.X << ", " <<
             sLoc.Y << ", " << sLoc.Z << ")" << std::endl; 
          }
-
          /* No more expected results? */
          if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
             && m_mapQueryTimings[*it].Done == false)
@@ -455,17 +455,16 @@ void CCollectivePerception::AggregateObservations()
             LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
             sLoc.Y << ", " <<  sLoc.Z << std::endl;
             
-            LOG << "THIS IS NOT WORKING" << std::endl;
 
             // /* Write consolidated prediction */;
-            // SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
+            SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
 
-            // LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
-            // << " for (" << sEvent.Location.X << ", " <<
-            // sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
-            // << (int) sEvent.Payload.Radius << " observations" << std::endl;
+            LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
+            << " for (" << sEvent.Location.X << ", " <<
+            sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
+            << (int) sEvent.Payload.Radius << " observations" << std::endl;
 
-            // m_cMySM.Put(sEvent);
+            m_cMySM.Put(sEvent);
 
             /* Avoid consolidating again */
             m_mapQueryTimings[*it].Done = true;
@@ -484,8 +483,7 @@ SEventData CCollectivePerception::ConsolidateObservations(
    const std::vector<STuple>& vec_tuples, const SLocation& s_loc)
 {
    /* Majority voting */
-   std::vector<STuple> vecSorted;
-   std::copy(vec_tuples.begin(), vec_tuples.end(), vecSorted.begin());
+   std::vector<STuple> vecSorted(vec_tuples);
    
    std::sort(vecSorted.begin(), vecSorted.end(),[](STuple const& lhs, STuple const& rhs){
       std::string strLhs = lhs.Value.Type;
@@ -497,6 +495,7 @@ SEventData CCollectivePerception::ConsolidateObservations(
    int nCount = 1;
    int nTopCount = 1;
    size_t unTopIndex = 0;
+
    for (size_t i = 1; i < vecSorted.size() ; ++i)
    {
       if(vecSorted[i].Value.Type == vecSorted[i-1].Value.Type) 

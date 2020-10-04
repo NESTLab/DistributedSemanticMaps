@@ -47,8 +47,10 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <!-- <loop_functions>
-  </loop_functions> -->
+  <loop_functions library="build/loop_functions/libpoint_cloud_loop_functions.so"
+                  label="point_cloud_loop_functions">
+      <point_cloud input_file="../data/005/005.xml"/>
+  </loop_functions>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
@@ -152,7 +154,7 @@
       <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="30" max_trials="100" base_num="1">
-        <foot-bot id="K" rab_data_size="1000" rab_range="2">
+        <foot-bot id="K" rab_data_size="5000" rab_range="2">
           <controller config="knc" />
         </foot-bot>
       </entity>

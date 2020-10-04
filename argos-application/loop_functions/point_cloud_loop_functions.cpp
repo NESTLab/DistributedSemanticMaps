@@ -11,7 +11,7 @@
 #include <argos3/plugins/simulator/physics_engines/dynamics2d_point_cloud_model.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_engine.h>
 
-CPointCloudLoopFunctions::CPointCloudLoopFunctions() {}
+CPointCloudLoopFunctions::CPointCloudLoopFunctions() : m_unClock(0) {}
 
 /* The format of the oriented bounding box is: box center (x, y, z), 
 *  box dimension (along x, y, z), and a quaternion (x, y, z, w) that 
@@ -21,87 +21,98 @@ CPointCloudLoopFunctions::CPointCloudLoopFunctions() {}
 
 void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     
-    /* Get xml tags */ 
-    TConfigurationNode& tPointCloud = GetNode(t_node, "point_cloud");
+    // /* Get xml tags */ 
+    // TConfigurationNode& tPointCloud = GetNode(t_node, "point_cloud");
 
-    /* Get filename of point cloud file */
-    std::string strFile;
-    GetNodeAttribute(tPointCloud, "input_file", strFile);
-    /* Load xml file */
-    ticpp::Document tInputFile;
-    tInputFile.LoadFile(strFile);
-    TConfigurationNode tFileRoot = *tInputFile.FirstChildElement();
-    TConfigurationNodeIterator cCurrNode;
-    /* Iterate through all nodes */
-    int count = 0;
-    for(cCurrNode = cCurrNode.begin(&tFileRoot);
-          cCurrNode != cCurrNode.end(); ++cCurrNode)
-    {
-        if(cCurrNode->Value() == "label"){
-            try {
-                std::string strPCEntityId, strCategory, 
-                            strColor, strBoundingBox, strPose;
-                /* Get point cloud information */
-                GetNodeAttribute(*cCurrNode, "id", strPCEntityId);
-                GetNodeAttribute(*cCurrNode, "nyu_class", strCategory);
-                GetNodeAttribute(*cCurrNode, "color", strColor);
-                GetNodeAttribute(*cCurrNode, "obbox", strBoundingBox);
-                // GetNodeAttribute(*cCurrNode, "aabbox", strBoundingBox);
-                // GetNodeAttribute(*cCurrNode, "local_pose", strPose);
+    // /* Get filename of point cloud file */
+    // std::string strFile;
+    // GetNodeAttribute(tPointCloud, "input_file", strFile);
+    // /* Load xml file */
+    // ticpp::Document tInputFile;
+    // tInputFile.LoadFile(strFile);
+    // TConfigurationNode tFileRoot = *tInputFile.FirstChildElement();
+    // TConfigurationNodeIterator cCurrNode;
+    // /* Iterate through all nodes */
+    // int count = 0;
+    // for(cCurrNode = cCurrNode.begin(&tFileRoot);
+    //       cCurrNode != cCurrNode.end(); ++cCurrNode)
+    // {
+    //     if(cCurrNode->Value() == "label"){
+    //         try {
+    //             std::string strPCEntityId, strCategory, 
+    //                         strColor, strBoundingBox, strPose;
+    //             /* Get point cloud information */
+    //             GetNodeAttribute(*cCurrNode, "id", strPCEntityId);
+    //             GetNodeAttribute(*cCurrNode, "nyu_class", strCategory);
+    //             GetNodeAttribute(*cCurrNode, "color", strColor);
+    //             GetNodeAttribute(*cCurrNode, "obbox", strBoundingBox);
+    //             // GetNodeAttribute(*cCurrNode, "aabbox", strBoundingBox);
+    //             // GetNodeAttribute(*cCurrNode, "local_pose", strPose);
 
-                /* Extract color vector */
-                std::vector<UInt8> vecColor;
-                SplitStringToUInt8(strColor, vecColor);
+    //             /* Extract color vector */
+    //             std::vector<UInt8> vecColor;
+    //             SplitStringToUInt8(strColor, vecColor);
 
-                if(strCategory == "floor" || strCategory == "ceiling" || 
-                 strCategory == "unknown" ||strCategory == "") continue;
+    //             if(strCategory == "floor" || strCategory == "ceiling" || 
+    //              strCategory == "unknown" ||strCategory == "") continue;
 
-                /* Get enum category from string */
-                // CPointCloudEntity::ECategory eCategory = CPointCloudEntity::categoryMap()[strCategory];
+    //             /* Get enum category from string */
+    //             // CPointCloudEntity::ECategory eCategory = CPointCloudEntity::categoryMap()[strCategory];
 
-                /* Get bounding box coordinates */
-                std::vector<Real> vecBox;
-                SplitStringToReal(strBoundingBox, vecBox);
+    //             /* Get bounding box coordinates */
+    //             std::vector<Real> vecBox;
+    //             SplitStringToReal(strBoundingBox, vecBox);
 
-                if(vecBox[2] < 0.0 || vecBox[2] > 3.0) continue;
+    //             if(vecBox[2] < 0.0 || vecBox[2] > 3.0) continue;
 
-                LOG << strPCEntityId << " " << strCategory << " " << strBoundingBox 
-                << " Color " << strColor << std::endl;
+    //             LOG << strPCEntityId << " " << strCategory << " " << strBoundingBox 
+    //             << " Color " << strColor << std::endl;
 
-                /* Get pose quaternion components */
-                // std::vector<Real> vecPose;
-                // SplitStringToReal(strPose, vecPose);
+    //             /* Get pose quaternion components */
+    //             // std::vector<Real> vecPose;
+    //             // SplitStringToReal(strPose, vecPose);
 
-                /* Create the new point cloud entity*/
-                CPointCloudEntity* pcObject = new CPointCloudEntity(
-                    strPCEntityId,
-                    CVector3(vecBox[0], vecBox[1], vecBox[2]), //position
-                    // CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
-                    CQuaternion(vecBox[6], vecBox[7], vecBox[8], vecBox[9]), // orientation
-                    CVector3(vecBox[3], vecBox[4], vecBox[5]), //size
-                    strCategory, // category 
-                    CColor(vecColor[0], vecColor[1], vecColor[2]) // color
-                    );
+    //             /* Create the new point cloud entity*/
+    //             CPointCloudEntity* pcObject = new CPointCloudEntity(
+    //                 strPCEntityId,
+    //                 CVector3(vecBox[0], vecBox[1], vecBox[2]), //position
+    //                 // CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
+    //                 CQuaternion(vecBox[6], vecBox[7], vecBox[8], vecBox[9]), // orientation
+    //                 CVector3(vecBox[3], vecBox[4], vecBox[5]), //size
+    //                 strCategory, // category 
+    //                 CColor(vecColor[0], vecColor[1], vecColor[2]) // color
+    //                 );
 
-                /* Add it to the simulation */
-                AddEntity(*pcObject);
-                /* Set physics model */
-                CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
-                CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *pcObject);
-                pcObject->GetEmbodiedEntity().AddPhysicsModel(ToString("dyn2d"), *pcModel);
-                /* Set medium */
-                CPointCloudMedium* pcPointCloudMedium = &CSimulator::GetInstance().GetMedium<CPointCloudMedium>(ToString("point_clouds"));
-                pcObject->SetMedium(*pcPointCloudMedium);
+    //             /* Add it to the simulation */
+    //             AddEntity(*pcObject);
+    //             /* Set physics model */
+    //             CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
+    //             CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *pcObject);
+    //             pcObject->GetEmbodiedEntity().AddPhysicsModel(ToString("dyn2d"), *pcModel);
+    //             /* Set medium */
+    //             CPointCloudMedium* pcPointCloudMedium = &CSimulator::GetInstance().GetMedium<CPointCloudMedium>(ToString("point_clouds"));
+    //             pcObject->SetMedium(*pcPointCloudMedium);
 
-                m_pcPointClouds.push_back(pcObject);
-                ++count;
+    //             m_pcPointClouds.push_back(pcObject);
+    //             ++count;
 
-            }
-                catch(CARGoSException& ex) {
-                    THROW_ARGOSEXCEPTION_NESTED("Error initializing point cloud", ex);
-            }
-        }
-        // if (count > 30) break;
+    //         }
+    //             catch(CARGoSException& ex) {
+    //                 THROW_ARGOSEXCEPTION_NESTED("Error initializing point cloud", ex);
+    //         }
+    //     }
+    //     // if (count > 30) break;
+    // }
+    std::string strOutputFileName("outputfile.dat");
+
+    m_ofOutputFile.open(strOutputFileName, std::ios_base::trunc | std::ios_base::out);
+
+    CSpace::TMapPerType& cRobots = GetSpace().GetEntitiesByType("foot-bot");
+    for (CSpace::TMapPerType::iterator it = cRobots.begin(); it != cRobots.end(); it++) {
+        CFootBotEntity* cRobot = any_cast<CFootBotEntity*>(it->second);
+        CCollectivePerception* cController = &dynamic_cast<CCollectivePerception&>(cRobot->GetControllableEntity().GetController());
+        m_vecControllers.push_back(cController);
+        m_vecRobots.push_back(cRobot);
     }
 }
 
@@ -182,20 +193,41 @@ void CPointCloudLoopFunctions::SplitString(std::string str, std::vector<std::str
 /****************************************/
 /****************************************/
 
-// void CPointCloudLoopFunctions::Reset() {
-//    ;
-// }
+void CPointCloudLoopFunctions::Reset() {
+   m_ofOutputFile.close();
+   m_vecControllers.clear();
+   m_vecRobots.clear();
+}
+
+void CPointCloudLoopFunctions::Destroy() {
+    m_ofOutputFile.close();
+}
 
 // /****************************************/
 // /****************************************/
 
-// void CPointCloudLoopFunctions::PreStep() {
-//     ;
-// }
+void CPointCloudLoopFunctions::PreStep() {
+    m_unClock = GetSpace().GetSimulationClock();
+}
 
 /****************************************/
 /****************************************/
 void CPointCloudLoopFunctions::PostStep() {
+    UInt16 unTotalMessages = 0;
+    for (size_t i = 0; i < m_vecControllers.size(); i++) {
+        unTotalMessages += m_vecControllers[i]->GetMessageCount();
+        m_vecControllers[i]->SetMessageCount(0);
+    }
+    m_ofOutputFile << m_unClock << ' ' << unTotalMessages << '\n'; 
+}
+
+void CPointCloudLoopFunctions::PostExperiment() {
+    for (size_t i = 0; i < m_vecControllers.size(); i++) {
+        //TODO: Get data from each controller and write to file
+        /* Robot ID, Number of predictions, Timestep
+         For each prediction:
+              Predicted Category, Actual Category, Number of Observations, Time Taken */
+    }
 }
 
 REGISTER_LOOP_FUNCTIONS(CPointCloudLoopFunctions, "point_cloud_loop_functions");
