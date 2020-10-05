@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <utility>
+#include <unordered_map>
 
 /* The controller */
 #include <controllers/collective_perception_controller/collective_perception_controller.h>
@@ -33,6 +35,7 @@ public:
    virtual void Destroy();
    virtual void PostExperiment();
 
+
    void SplitString(std::string str, std::vector<std::string>& buffer);
    void SplitStringToReal(std::string str, std::vector<Real>& buffer);
    void SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer);
@@ -42,9 +45,11 @@ private:
    std::vector<CPointCloudEntity*> m_pcPointClouds;
    std::vector<CCollectivePerception*> m_vecControllers;
    std::vector<CFootBotEntity*> m_vecRobots;
+   std::unordered_map<SLocation, std::string, SLocation> m_mapActualCategories;
 
    std::ofstream m_ofOutputFile;
    UInt16 m_unClock;
+   UInt32 m_unNumRobots;
 };
 
 #endif

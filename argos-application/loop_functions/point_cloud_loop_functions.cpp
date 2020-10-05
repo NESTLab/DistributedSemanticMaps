@@ -114,6 +114,14 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
         m_vecControllers.push_back(cController);
         m_vecRobots.push_back(cRobot);
     }
+    CSpace::TMapPerType& cPointClouds = GetSpace().GetEntitiesByType("point_cloud");
+    for (CSpace::TMapPerType::iterator it = cPointClouds.begin(); it != cPointClouds.end(); it++) {
+        CPointCloudEntity& cPointCloud = *any_cast<CPointCloudEntity*>(it->second);
+        CVector3 cPos = cPointCloud.GetEmbodiedEntity().GetOriginAnchor().Position;
+        SLocation sLocation = SLocation(cPos.GetX(), cPos.GetY(), cPos.GetZ());
+        m_mapActualCategories[sLocation] = cPointCloud.GetCategory();
+    }
+    m_unNumRobots = cRobots.size();
 }
 
 
@@ -214,19 +222,33 @@ void CPointCloudLoopFunctions::PreStep() {
 /****************************************/
 void CPointCloudLoopFunctions::PostStep() {
     UInt16 unTotalMessages = 0;
+    m_ofOutputFile << m_unClock << ' ' << m_unNumRobots << '\n';
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
+        std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
+        std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
+        m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << vecVotingDecisions.size() << '\n';
+
+        for (int i = 0; i < vecVotingDecisions.size(); i++) {
+            SEventData sVotingDecision = vecVotingDecisions[i];
+            CCollectivePerception::STimingInfo sTimingInfo = vecTimingInfo[i];
+            std::string strActualCategory = m_mapActualCategories[sVotingDecision.Location];
+            m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
+                strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
+                sTimingInfo.LastUpdate - sTimingInfo.Start << '\n';
+        }
+
+        m_vecControllers[i]->ClearVotingDecisions();
+        m_vecControllers[i]->ClearTimingInfo();
         m_vecControllers[i]->SetMessageCount(0);
     }
-    m_ofOutputFile << m_unClock << ' ' << unTotalMessages << '\n'; 
+    m_ofOutputFile << unTotalMessages << '\n'; 
+    
 }
 
 void CPointCloudLoopFunctions::PostExperiment() {
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
-        //TODO: Get data from each controller and write to file
-        /* Robot ID, Number of predictions, Timestep
-         For each prediction:
-              Predicted Category, Actual Category, Number of Observations, Time Taken */
+        
     }
 }
 

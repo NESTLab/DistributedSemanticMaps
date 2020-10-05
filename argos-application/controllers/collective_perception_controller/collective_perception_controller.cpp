@@ -458,6 +458,8 @@ void CCollectivePerception::AggregateObservations()
 
             // /* Write consolidated prediction */;
             SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
+            m_vecVotingDecisions.push_back(sEvent);
+            m_vecTimingInfo.push_back(m_mapQueryTimings[*it]);
 
             LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
             << " for (" << sEvent.Location.X << ", " <<
@@ -509,7 +511,7 @@ SEventData CCollectivePerception::ConsolidateObservations(
       }
       else nCount = 1;
    }
-   std::string strConsolidated = vecSorted[unTopIndex].Value.Type;
+   std::string strConsolidated = vecSorted[unTopIndex].Value.Payload.Category;
    SEventData sEvent;
    /* */
    sEvent.Type = "collective_label";
@@ -579,6 +581,20 @@ void CCollectivePerception::ProcessOutMsgs()
 
    m_pcRABA->SetData(cBuffer);
 
+}
+
+/****************************************/
+/****************************************/
+
+std::vector<SEventData>& CCollectivePerception::GetVotingDecisions() {
+   return m_vecVotingDecisions;
+}
+
+/****************************************/
+/****************************************/
+
+std::vector<CCollectivePerception::STimingInfo>& CCollectivePerception::GetTimingInfo() {
+   return m_vecTimingInfo;
 }
 
 /****************************************/

@@ -21,6 +21,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <algorithm>
+#include <functional>
 
 /* TODO: make this configurable */
 const uint16_t BUCKET_SIZE = 5;
@@ -95,6 +96,20 @@ struct SLocation {
       Z = s_location.Z;
       return *this;
    }
+
+   /* Hashing location */
+   size_t operator()(const SLocation& s_location) const {
+      auto hashX = std::hash<float>{}(X);
+      auto hashY = std::hash<float>{}(Y);
+      auto hashZ = std::hash<float>{}(Z);
+      return hashX ^ hashY ^ hashZ;
+   }
+
+   /* Equality operator */
+   bool operator==(const SLocation& s_location) const {
+      return s_location.X == X && s_location.Y == Y && s_location.Z == Z;
+   }
+
 };
 
 /* Structure representing events */
@@ -315,7 +330,20 @@ public:
    /* Get Message Count */
    inline UInt16 GetMessageCount() {return m_unMessageCount;}
 
+   /* Reset Message Count */
    inline void SetMessageCount(UInt16 un_message_count) {m_unMessageCount = un_message_count; }
+
+   /* Get all consolidated/voted decisions */
+   std::vector<SEventData>& GetVotingDecisions();
+
+   /* Get timing info for all voting decisions */
+   std::vector<STimingInfo>& GetTimingInfo();
+
+   /* Reset vector of voting decisions */
+   inline void ClearVotingDecisions() { m_vecVotingDecisions.clear(); }
+
+   /* Reset vector of timing info */
+   inline void ClearTimingInfo() { m_vecTimingInfo.clear(); }
 
 private:
 
@@ -337,6 +365,12 @@ private:
    UInt16 m_unClock;
    UInt16 m_unTimeLastRecording;
    UInt16 m_unTimeLastQuery;
+
+   /* Vector of decisions made by the robot after majority voting */
+   std::vector<SEventData> m_vecVotingDecisions;
+
+   /* Vector of timing info for all voting events */
+   std::vector<STimingInfo> m_vecTimingInfo;
 
    /* Returns the list of events recorded by the robot
       at the current time step */
