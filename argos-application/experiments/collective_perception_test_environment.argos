@@ -70,7 +70,7 @@
       <body position="-2.5,0,0" orientation="0,0,0" />
     </box>
     
-    <point_cloud id="item1" size="0.2,0.2,0.2" category="bag" color="254,0,0,1"
+    <point_cloud id="item1" size="0.2,0.2,0.2" category="bin" color="254,0,0,1"
                   medium="point_clouds">
       <body position="-1.5,1,0" orientation="20,0,0"/>
     </point_cloud>
@@ -135,7 +135,7 @@
       <body position="-2.1,-2.1,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="item14" size="0.3,0.3,0.4" category="bag" color="1,58,47,1"
+    <point_cloud id="item14" size="0.3,0.3,0.4" category="bin" color="1,58,47,1"
                   medium="point_clouds">
       <body position="-1,-0.5,0" orientation="0,0,0"/>
     </point_cloud>

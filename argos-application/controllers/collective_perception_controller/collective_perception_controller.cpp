@@ -5,6 +5,52 @@
 /****************************************/
 /****************************************/
 
+std::map<std::string, ECategory> CCategoryMap::StringToCategoryMap =
+{
+      {"bag", BAG},
+      {"bed", BED}, 
+      {"bin", BIN},
+      {"box", BOX},
+      {"cabinet", CABINET},
+      {"chair", CHAIR},
+      {"collective_label", COLLECTIVE_LABEL},
+      {"desk", DESK},
+      {"display", DISPLAY},
+      {"door", DOOR},
+      {"pillow", PILLOW},
+      {"shelf", SHELF},
+      {"sink", SINK},
+      {"sofa", SOFA},
+      {"table", TABLE},
+      {"toilet", TOILET},
+      {"unknown", UNKNOWN},
+      {"", UNKNOWN}
+};
+
+std::map<ECategory, std::string> CCategoryMap::CategoryToStringMap =
+{
+      {BAG, "bag"},
+      {BED, "bed"}, 
+      {BIN, "bin", },
+      {BOX, "box"},
+      {CABINET, "cabinet"},
+      {CHAIR, "chair"},
+      {COLLECTIVE_LABEL, "collective_label"},
+      {DESK, "desk"},
+      {DISPLAY, "display"},
+      {DOOR, "door"},
+      {PILLOW, "pillow"},
+      {SHELF, "shelf"},
+      {SINK, "sink"},
+      {SOFA, "sofa"},
+      {TABLE, "table"},
+      {TOILET, "toilet"},
+      {UNKNOWN, "unknown"}
+};
+
+/****************************************/
+/****************************************/
+
 /**
  * Unpack SEventData object from the byte buffer
  * 
@@ -16,10 +62,16 @@ SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& u
   
    SEventData sValue;
    
-   sValue.Type = swarmmesh::UnpackString(vec_buffer, un_offset);
+   sValue.Type = CCategoryMap::CategoryToStringMap[static_cast<ECategory>(swarmmesh::UnpackUInt8(vec_buffer, un_offset))];
+   //swarmmesh::UnpackString(vec_buffer, un_offset);
+
+   LOG << sValue.Type << std::endl;
 
    sValue.Payload = {swarmmesh::UnpackFloat(vec_buffer, un_offset),
-                     swarmmesh::UnpackString(vec_buffer, un_offset)};
+                     CCategoryMap::CategoryToStringMap[static_cast<ECategory>(swarmmesh::UnpackUInt8(vec_buffer, un_offset))]};
+                     // swarmmesh::UnpackString(vec_buffer, un_offset)};
+
+   LOG << sValue.Payload.Category << std::endl;
 
    sValue.Location = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
                      swarmmesh::UnpackFloat(vec_buffer, un_offset),
@@ -36,10 +88,16 @@ SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& u
  */
 void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_event) {
 
-   swarmmesh::PackString(vec_buffer, s_event.Type);
+   LOG << s_event.Type << " " << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Type]) << std::endl;
+
+   swarmmesh::PackUInt8(vec_buffer, static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Type]));
+   // swarmmesh::PackString(vec_buffer, s_event.Type);
 
    swarmmesh::PackFloat(vec_buffer,s_event.Payload.Radius);
-   swarmmesh::PackString(vec_buffer, s_event.Payload.Category);
+
+   LOG << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]) << std::endl;
+   swarmmesh::PackUInt8(vec_buffer, static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]));
+   // swarmmesh::PackString(vec_buffer, s_event.Payload.Category);
 
    swarmmesh::PackFloat(vec_buffer, s_event.Location.X);
    swarmmesh::PackFloat(vec_buffer, s_event.Location.Y);
@@ -443,11 +501,11 @@ void CCollectivePerception::AggregateObservations()
             sLoc.Y << ", " << sLoc.Z << ")" << std::endl; 
          }
          /* No more expected results? */
-         if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
+         else if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
             && m_mapQueryTimings[*it].Done == false)
          {
             /* Delete the observations used */
-            m_cMySM.Erase(1, m_mapQueries[*it]);
+            // m_cMySM.Erase(1, m_mapQueries[*it]);
 
             /* Get location from emitted query */
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));

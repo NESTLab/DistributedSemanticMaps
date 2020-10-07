@@ -45,6 +45,40 @@ class CLocationFilter;
 
 using namespace argos;
 
+/* Labels */
+enum ECategory : uint8_t {
+   BAG = 0,
+   BED,
+   BIN,
+   BOX,
+   CABINET,
+   CHAIR,
+   COLLECTIVE_LABEL,
+   DESK,
+   DISPLAY,
+   DOOR,
+   PILLOW,
+   SHELF,
+   SINK,
+   SOFA,
+   TABLE,
+   TOILET,
+   UNKNOWN
+};
+
+
+/* String switch paradigm */
+class CCategoryMap
+{
+   public:
+   static std::map<std::string, ECategory> StringToCategoryMap;
+   static std::map<ECategory, std::string> CategoryToStringMap;
+
+   ~CCategoryMap(){}
+
+};
+
+
 /* Structure representing the point cloud */
 struct SPointCloud {
 
@@ -53,6 +87,7 @@ struct SPointCloud {
 
    /* Radius of sphere enclosing bounding box */
    float Radius;
+
    /* Object category */
    std::string Category;
 
