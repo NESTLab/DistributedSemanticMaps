@@ -23,8 +23,7 @@ std::map<std::string, ECategory> CCategoryMap::StringToCategoryMap =
       {"sofa", SOFA},
       {"table", TABLE},
       {"toilet", TOILET},
-      {"unknown", UNKNOWN},
-      {"", UNKNOWN}
+      {"unknown", UNKNOWN}
 };
 
 std::map<ECategory, std::string> CCategoryMap::CategoryToStringMap =
@@ -65,13 +64,13 @@ SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& u
    sValue.Type = CCategoryMap::CategoryToStringMap[static_cast<ECategory>(swarmmesh::UnpackUInt8(vec_buffer, un_offset))];
    //swarmmesh::UnpackString(vec_buffer, un_offset);
 
-   LOG << sValue.Type << std::endl;
+   // LOG << sValue.Type << '\n';
 
    sValue.Payload = {swarmmesh::UnpackFloat(vec_buffer, un_offset),
                      CCategoryMap::CategoryToStringMap[static_cast<ECategory>(swarmmesh::UnpackUInt8(vec_buffer, un_offset))]};
                      // swarmmesh::UnpackString(vec_buffer, un_offset)};
 
-   LOG << sValue.Payload.Category << std::endl;
+   // LOG << sValue.Payload.Category << '\n';
 
    sValue.Location = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
                      swarmmesh::UnpackFloat(vec_buffer, un_offset),
@@ -88,14 +87,14 @@ SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& u
  */
 void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_event) {
 
-   LOG << s_event.Type << " " << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Type]) << std::endl;
+   // LOG << s_event.Type << ' ' << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Type]) << '\n';
 
    swarmmesh::PackUInt8(vec_buffer, static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Type]));
    // swarmmesh::PackString(vec_buffer, s_event.Type);
 
    swarmmesh::PackFloat(vec_buffer,s_event.Payload.Radius);
 
-   LOG << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]) << std::endl;
+   // LOG << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]) << '\n';
    swarmmesh::PackUInt8(vec_buffer, static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]));
    // swarmmesh::PackString(vec_buffer, s_event.Payload.Category);
 
@@ -334,7 +333,7 @@ void CCollectivePerception::ControlStep()
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
       m_cMySM.Put(sEvent);
-      LOG << "Put as new observation" << std::endl;
+      LOG << "Put as new observation \n";
    }
 
    /* Request observations from SwarmMesh */
@@ -392,7 +391,7 @@ std::queue<SEventData> CCollectivePerception::RecordEvents()
 
    /* Debugging info */
    if(tReadings.size() > 0){
-      LOG << m_strId << " sees " << tReadings[0].Category << " at " << tReadings[0].Center << std::endl;
+      LOG << m_strId << " sees " << tReadings[0].Category << " at " << tReadings[0].Center << '\n';
    }
 
    return sEvents;
@@ -407,7 +406,8 @@ void CCollectivePerception::RequestObservations()
    /* Vector of stored tuples sorted in descending order 
       of data importance */
    std::vector<STuple>& vecTuples = m_cMySM.StoredTuples();
-   
+   m_unNumStoredTuples += vecTuples.size();
+
    /* Minimum number of observations in a given locations to 
       trigger a query on the shared memory */
    UInt16 unMinLocalObservations = CONSOLIDATION_QUOTA;
@@ -417,8 +417,8 @@ void CCollectivePerception::RequestObservations()
 
    if(vecTuples.size() == 0) return;
 
-   // LOG << "Num tuples" << vecTuples.size() << std::endl;
-   // LOG << "Threshold" << unMinLocalObservations << std::endl;
+   // LOG << "Num tuples" << vecTuples.size() << '\n';
+   // LOG << "Threshold" << unMinLocalObservations << '\n';
 
    auto it = vecTuples.begin();
    /* Exclude consolidated observations */
@@ -465,7 +465,7 @@ void CCollectivePerception::RequestObservations()
          m_mapQueryTimings[unQueryId] = STimingInfo(m_unClock, m_unClock);
 
          LOG << m_strId << " made request for (" <<  sLocation.X << ", " 
-         << sLocation.Y << ", " << sLocation.Z << ")" << std::endl;
+         << sLocation.Y << ", " << sLocation.Z << ") \n";
          m_unTimeLastQuery = m_unClock;
          return;
       }
@@ -498,7 +498,7 @@ void CCollectivePerception::AggregateObservations()
             m_mapQueryTimings[*it].LastUpdate = m_unClock;
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
             LOG << "Got result for query for (" << sLoc.X << ", " <<
-            sLoc.Y << ", " << sLoc.Z << ")" << std::endl; 
+            sLoc.Y << ", " << sLoc.Z << ") \n"; 
          }
          /* No more expected results? */
          else if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
@@ -511,7 +511,7 @@ void CCollectivePerception::AggregateObservations()
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
 
             LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
-            sLoc.Y << ", " <<  sLoc.Z << std::endl;
+            sLoc.Y << ", " <<  sLoc.Z << '\n';
             
 
             // /* Write consolidated prediction */;
@@ -522,8 +522,8 @@ void CCollectivePerception::AggregateObservations()
             LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
             << " for (" << sEvent.Location.X << ", " <<
             sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
-            << (int) sEvent.Payload.Radius << " observations" << std::endl;
-
+            << (int) sEvent.Payload.Radius << " observations" << '\n';
+            m_unMessageCount++;
             m_cMySM.Put(sEvent);
 
             /* Avoid consolidating again */
