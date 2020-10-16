@@ -146,8 +146,9 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    else if(strCategory  ==  "bed") {unHash = 1 + 12 * BUCKET_SIZE;}
    else if(strCategory  ==  "bag") {unHash = 1 + 13 * BUCKET_SIZE;}
    else if(strCategory  ==  "box") {unHash = 1 + 14 * BUCKET_SIZE;}
+   else if(strCategory == "unknown") {unHash = 1 + 15 * BUCKET_SIZE;}
    /* Consolidated observation */
-   else if (strCategory == "collective_label") {unHash = 1 + 15 * BUCKET_SIZE;}
+   else if (strCategory == "collective_label") {unHash = 1 + 16 * BUCKET_SIZE;}
    else  unHash = 0;
 
    /* Unique tuple identifier based on robot id and 
@@ -428,6 +429,7 @@ void CCollectivePerception::RequestObservations()
 
    std::unordered_map<std::string, std::any> mapFilterParams;
 
+   /* TODO: only do this when new stored tuples?*/
    while (it != vecTuples.end())
    {
       STuple sTuple = *it;
@@ -505,7 +507,7 @@ void CCollectivePerception::AggregateObservations()
             && m_mapQueryTimings[*it].Done == false)
          {
             /* Delete the observations used */
-            // m_cMySM.Erase(1, m_mapQueries[*it]);
+            m_cMySM.Erase(1, m_mapQueries[*it]);
 
             /* Get location from emitted query */
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));

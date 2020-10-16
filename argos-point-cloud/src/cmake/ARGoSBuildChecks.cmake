@@ -18,10 +18,10 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 #
 # Find Lua
 #
-find_package(Lua53 REQUIRED)
-if(LUA53_FOUND)
+find_package(Lua52 REQUIRED)
+if(LUA52_FOUND)
   include_directories(${LUA_INCLUDE_DIR})
-endif(LUA53_FOUND)
+endif(LUA52_FOUND)
 
 #
 # Set ARGoS include dir
