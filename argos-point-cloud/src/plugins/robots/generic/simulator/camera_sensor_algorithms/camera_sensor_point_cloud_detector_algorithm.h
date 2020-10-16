@@ -197,8 +197,7 @@ namespace argos {
             {11, "pillow"},
             {12, "sink"},
             {13, "sofa"},
-            {14, "toilet"},
-            {15, "unknown"}
+            {14, "toilet"}
          });
       }
       const std::unordered_map<int, std::string> m_mapCategory = InitMapCategory();

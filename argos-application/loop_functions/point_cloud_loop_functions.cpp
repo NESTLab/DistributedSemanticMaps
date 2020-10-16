@@ -66,7 +66,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     //             if(vecBox[2] < 0.0 || vecBox[2] > 3.0) continue;
 
     //             LOG << strPCEntityId << " " << strCategory << " " << strBoundingBox 
-    //             << " Color " << strColor << std::endl;
+    //             << " Color " << strColor << '\n';
 
     //             /* Get pose quaternion components */
     //             // std::vector<Real> vecPose;
@@ -221,28 +221,31 @@ void CPointCloudLoopFunctions::PreStep() {
 /****************************************/
 /****************************************/
 void CPointCloudLoopFunctions::PostStep() {
-    // UInt16 unTotalMessages = 0;
-    // m_ofOutputFile << m_unClock << ' ' << m_unNumRobots << '\n';
-    // for (size_t i = 0; i < m_vecControllers.size(); i++) {
-    //     unTotalMessages += m_vecControllers[i]->GetMessageCount();
-    //     std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
-    //     std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
-    //     m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << vecVotingDecisions.size() << '\n';
+    UInt16 unTotalMessages = 0;
+    m_ofOutputFile << m_unClock << ' ' << m_unNumRobots << '\n';
+    UInt32 unTotalTuples = 0;
+    for (size_t i = 0; i < m_vecControllers.size(); i++) {
+        unTotalMessages += m_vecControllers[i]->GetMessageCount();
+        unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
+        std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
+        std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
+        m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << vecVotingDecisions.size() << '\n';
 
-    //     for (int i = 0; i < vecVotingDecisions.size(); i++) {
-    //         SEventData sVotingDecision = vecVotingDecisions[i];
-    //         CCollectivePerception::STimingInfo sTimingInfo = vecTimingInfo[i];
-    //         std::string strActualCategory = m_mapActualCategories[sVotingDecision.Location];
-    //         m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
-    //             strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
-    //             sTimingInfo.LastUpdate - sTimingInfo.Start << '\n';
-    //     }
+        for (int i = 0; i < vecVotingDecisions.size(); i++) {
+            SEventData sVotingDecision = vecVotingDecisions[i];
+            CCollectivePerception::STimingInfo sTimingInfo = vecTimingInfo[i];
+            std::string strActualCategory = m_mapActualCategories[sVotingDecision.Location];
+            m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
+                strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
+                sTimingInfo.LastUpdate - sTimingInfo.Start << '\n';
+        }
 
-    //     m_vecControllers[i]->ClearVotingDecisions();
-    //     m_vecControllers[i]->ClearTimingInfo();
-    //     m_vecControllers[i]->SetMessageCount(0);
-    // }
-    // m_ofOutputFile << unTotalMessages << '\n'; 
+        m_vecControllers[i]->ClearVotingDecisions();
+        m_vecControllers[i]->ClearTimingInfo();
+        m_vecControllers[i]->SetMessageCount(0);
+        m_vecControllers[i]->SetNumStoredTuples(0);
+    }
+    m_ofOutputFile << unTotalTuples << '\n'; 
     
 }
 

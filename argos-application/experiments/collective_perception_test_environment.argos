@@ -154,7 +154,7 @@
       <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="30" max_trials="100" base_num="1">
-        <foot-bot id="K" rab_data_size="5000" rab_range="2">
+        <foot-bot id="K" rab_data_size="1000" rab_range="2">
           <controller config="knc" />
         </foot-bot>
       </entity>

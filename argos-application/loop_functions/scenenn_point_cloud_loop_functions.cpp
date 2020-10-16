@@ -66,7 +66,7 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 if(vecBox[2] < 0.0 || vecBox[2] > 3.0) continue;
 
                 LOG << strPCEntityId << " " << strCategory << " " << strBoundingBox 
-                << " Color " << strColor << std::endl;
+                << " Color " << strColor << '\n';
 
                 /* Get pose quaternion components */
                 // std::vector<Real> vecPose;

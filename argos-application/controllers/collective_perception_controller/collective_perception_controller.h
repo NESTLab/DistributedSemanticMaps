@@ -98,10 +98,11 @@ struct SPointCloud {
    SPointCloud(float radius,
    std::string cat) : Category(cat), Radius(radius) {}
 
-   /* Copy operator */
-   SPointCloud& operator=(const SPointCloud s_pc) {
+   /* Assignment operator */
+   SPointCloud& operator=(const SPointCloud& s_pc) {
       Radius = s_pc.Radius;
       Category = s_pc.Category;
+      return *this;
    }
 };
 
@@ -124,7 +125,7 @@ struct SLocation {
     */
    SLocation(float f_x, float f_y, float f_z) : X(f_x), Y(f_y), Z(f_z) {}
 
-   /* Copy operator */
+   /* Assignment operator */
    SLocation& operator=(const SLocation& s_location) {
       X = s_location.X;
       Y = s_location.Y;
@@ -155,6 +156,40 @@ struct SEventData {
    SPointCloud Payload;
    /* Spatial location of the event */
    SLocation Location;
+
+   /* Default constructor */
+   SEventData() = default;
+
+   /**
+    * @brief Construct a new SEventData object
+    * 
+    * @param s_type 
+    * @param s_payload 
+    * @param s_location 
+    */
+   SEventData(std::string s_type, SPointCloud s_payload, SLocation s_location) :
+      Type(s_type),
+      Payload(s_payload),
+      Location(s_location) {}
+
+   /**
+    * @brief Construct a new SEventData object
+    * 
+    * @param s_event 
+    */
+   SEventData(const SEventData& s_event) {
+      Type = s_event.Type;
+      Payload = s_event.Payload;
+      Location = s_event.Location;
+   }
+
+   /* Assignment operator */
+   SEventData& operator=(const SEventData& s_event_data) {
+      Type = s_event_data.Type;
+      Payload = s_event_data.Payload;
+      Location = s_event_data.Location;
+      return *this;
+   }
 };
 
 typedef typename swarmmesh::CSwarmMesh<SEventData>::STuple STuple;
@@ -380,6 +415,10 @@ public:
    /* Reset vector of timing info */
    inline void ClearTimingInfo() { m_vecTimingInfo.clear(); }
 
+   inline void SetNumStoredTuples(uint32_t un_count) { m_unNumStoredTuples = un_count; }
+
+   inline UInt32 GetNumStoredTuples() { return m_unNumStoredTuples; }
+
 private:
 
    /* The robot numeric id */
@@ -390,6 +429,8 @@ private:
 
    /* Number of messages sent */
    UInt16 m_unMessageCount;
+
+   UInt32 m_unNumStoredTuples;
 
    /* Pointer to random number generator */
    CRandom::CRNG* m_pcRNG;
