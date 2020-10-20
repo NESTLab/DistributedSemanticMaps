@@ -11,6 +11,21 @@
 #include <argos3/plugins/simulator/physics_engines/dynamics2d_point_cloud_model.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_engine.h>
 
+static const std::string POINTCLOUD_TABLE[13] = {"bed",
+                                    "bin",  
+                                    "cabinet", 
+                                    "chair", 
+                                    "desk", 
+                                    "display",
+                                    "door", 
+                                    "pillow", 
+                                    "shelf", 
+                                    "sink",
+                                    "sofa", 
+                                    "table",
+                                    "toilet"};
+static const CRange<UInt32> cIndexRange(0, 12);
+
 CSceneNNPointCloudLoopFunctions::CSceneNNPointCloudLoopFunctions() {}
 
 /* The format of the oriented bounding box is: box center (x, y, z), 
@@ -53,17 +68,23 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 std::vector<UInt8> vecColor;
                 SplitStringToUInt8(strColor, vecColor);
 
-                if(strCategory == "floor" || strCategory == "ceiling" || 
-                 strCategory == "unknown" ||strCategory == "") continue;
+                if(strCategory == "unknown")
+                {
+                    /* Make it any object at random */
+                    CRandom::CRNG* pcRNG = CRandom::CreateRNG("argos");
+                    strCategory =  POINTCLOUD_TABLE[pcRNG->Uniform(cIndexRange)];
+                }
 
-                /* Get enum category from string */
-                // CPointCloudEntity::ECategory eCategory = CPointCloudEntity::categoryMap()[strCategory];
+                if(CCategoryMap::StringToCategoryMap.count(strCategory) == 0 ||
+                    strCategory == "box" || strCategory == "bag")
+                {
+                    LOG << "Not importing " << strCategory << std::endl;
+                    continue;
+                } 
 
                 /* Get bounding box coordinates */
                 std::vector<Real> vecBox;
                 SplitStringToReal(strBoundingBox, vecBox);
-
-                if(vecBox[2] < 0.0 || vecBox[2] > 3.0) continue;
 
                 LOG << strPCEntityId << " " << strCategory << " " << strBoundingBox 
                 << " Color " << strColor << '\n';
@@ -75,10 +96,10 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 /* Create the new point cloud entity*/
                 CPointCloudEntity* pcObject = new CPointCloudEntity(
                     strPCEntityId,
-                    CVector3(vecBox[0], vecBox[1], vecBox[2]), //position
+                    CVector3(vecBox[0], vecBox[1], 0.), //position
                     // CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
-                    CQuaternion(vecBox[6], vecBox[7], vecBox[8], vecBox[9]), // orientation
-                    CVector3(vecBox[3], vecBox[4], vecBox[5]), //size
+                    CQuaternion(),//vecBox[6], vecBox[7], vecBox[8], vecBox[9]), // orientation
+                    CVector3(Min(vecBox[3], 0.5), Min(vecBox[4], 0.5), Min(vecBox[5], 0.5)), //size
                     strCategory, // category 
                     CColor(vecColor[0], vecColor[1], vecColor[2]) // color
                     );
@@ -89,10 +110,11 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
                 CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *pcObject);
                 pcObject->GetEmbodiedEntity().AddPhysicsModel(ToString("dyn2d"), *pcModel);
+                pcObject->CalculateFaceCorners();
                 /* Set medium */
                 CPointCloudMedium* pcPointCloudMedium = &CSimulator::GetInstance().GetMedium<CPointCloudMedium>(ToString("point_clouds"));
                 pcObject->SetMedium(*pcPointCloudMedium);
-
+                pcPointCloudMedium->AddEntity(*pcObject);
                 m_pcPointClouds.push_back(pcObject);
                 ++count;
 
@@ -101,7 +123,7 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                     THROW_ARGOSEXCEPTION_NESTED("Error initializing point cloud", ex);
             }
         }
-        // if (count > 30) break;
+        if (count > 30) break;
     }
 }
 
