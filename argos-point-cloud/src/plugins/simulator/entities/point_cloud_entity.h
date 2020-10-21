@@ -123,6 +123,9 @@ namespace argos {
        */
       void SetMedium(CPointCloudMedium& c_medium);
 
+      void CalculateFaceCorners();
+
+
    private:
 
       CEmbodiedEntity*    m_pcEmbodiedEntity;
@@ -132,8 +135,6 @@ namespace argos {
       CPointCloudMedium*  m_pcPointCloudMedium;
       std::array<CVector3, 4> m_arrFrontFaceCorners;
       std::array<CVector3, 4> m_arrBackFaceCorners;
-
-      void CalculateFaceCorners();
 
    };
 

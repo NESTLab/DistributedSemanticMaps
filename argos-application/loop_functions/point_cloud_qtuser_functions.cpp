@@ -107,12 +107,11 @@ void CPointCloudQTUserFunctions::DrawInWorld() {
        it != tPCMap.end();
        ++it) {
       CPointCloudEntity& cPC = *any_cast<CPointCloudEntity*>(it->second);
-      // DrawText(cPC.GetEmbodiedEntity().GetOriginAnchor().Position + CVector3(.0,.0,.5),
-      //          cPC.GetId());
-
+      DrawText(cPC.GetEmbodiedEntity().GetOriginAnchor().Position + CVector3(.0,.0,.5),
+               cPC.GetCategory());
       for (auto corner : cPC.GetFrontCorners())
       {
-         DrawPoint(corner);
+         DrawPoint(corner, CColor::WHITE);
       }
    }
 }
