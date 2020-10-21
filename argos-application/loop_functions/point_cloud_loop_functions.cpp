@@ -112,6 +112,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
         CFootBotEntity* cRobot = any_cast<CFootBotEntity*>(it->second);
         CCollectivePerception* cController = &dynamic_cast<CCollectivePerception&>(cRobot->GetControllableEntity().GetController());
         m_vecControllers.push_back(cController);
+        cController->SetNumStoredTuples(0);
         m_vecRobots.push_back(cRobot);
     }
     CSpace::TMapPerType& cPointClouds = GetSpace().GetEntitiesByType("point_cloud");
@@ -122,6 +123,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
         m_mapActualCategories[sLocation] = cPointCloud.GetCategory();
     }
     m_unNumRobots = cRobots.size();
+    m_ofOutputFile << cPointClouds.size() << '\n';
 }
 
 
@@ -235,9 +237,12 @@ void CPointCloudLoopFunctions::PostStep() {
             SEventData sVotingDecision = vecVotingDecisions[i];
             CCollectivePerception::STimingInfo sTimingInfo = vecTimingInfo[i];
             std::string strActualCategory = m_mapActualCategories[sVotingDecision.Location];
+            m_mapVotedCategories[sVotingDecision.Location] = sVotingDecision.Payload.Category;
             m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
                 strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
-                sTimingInfo.LastUpdate - sTimingInfo.Start << '\n';
+                sTimingInfo.LastUpdate - sTimingInfo.Start << ' ' <<
+                sVotingDecision.Location.X << ' ' << sVotingDecision.Location.Y << 
+                ' ' << sVotingDecision.Location.Z << '\n';
         }
 
         m_vecControllers[i]->ClearVotingDecisions();
