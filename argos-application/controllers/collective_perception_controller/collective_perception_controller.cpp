@@ -505,7 +505,7 @@ void CCollectivePerception::AggregateObservations()
             && m_mapQueryTimings[*it].Done == false)
          {
             /* Delete the observations used */
-            // m_cMySM.Erase(1, m_mapQueries[*it]);
+            m_cMySM.Erase((uint8_t)1, m_mapQueries[*it]);
 
             /* Get location from emitted query */
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
