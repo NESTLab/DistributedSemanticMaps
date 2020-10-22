@@ -47,6 +47,9 @@ private:
    std::vector<CFootBotEntity*> m_vecRobots;
    std::unordered_map<SLocation, std::string, SLocation> m_mapActualCategories;
 
+   /* Map to store the category voted on for the point cloud */
+   std::unordered_map<SLocation, std::string, SLocation> m_mapVotedCategories;
+
    std::ofstream m_ofOutputFile;
    UInt16 m_unClock;
    UInt32 m_unNumRobots;
