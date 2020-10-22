@@ -26,6 +26,25 @@ static const std::string POINTCLOUD_TABLE[13] = {"bed",
                                     "toilet"};
 static const CRange<UInt32> cIndexRange(0, 12);
 
+static const std::string EASY_TABLE[6] = 
+                                    {"bin",
+                                    "cabinet", 
+                                    "chair", 
+                                    "door",
+                                    "shelf",
+                                    "sofa"};
+static const CRange<UInt32> cEasyRange(0, 5);
+
+static const std::string HARD_TABLE[6] = 
+                                    {"bed",
+                                    "toilet",
+                                    "table",
+                                    "desk",
+                                    "pillow",
+                                    "sink"};
+static const CRange<UInt32> cHardRange(0, 5);
+
+
 CSceneNNPointCloudLoopFunctions::CSceneNNPointCloudLoopFunctions() {}
 
 /* The format of the oriented bounding box is: box center (x, y, z), 
@@ -36,6 +55,11 @@ CSceneNNPointCloudLoopFunctions::CSceneNNPointCloudLoopFunctions() {}
 
 void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     
+    /* Create file to write environment to */
+    std::string strOutputFileName("environment_mixed.dat");
+    m_ofOutputFile.open(strOutputFileName, std::ios_base::trunc | std::ios_base::out);
+
+
     /* Get xml tags */ 
     TConfigurationNode& tPointCloud = GetNode(t_node, "point_cloud");
 
@@ -68,6 +92,7 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 std::vector<UInt8> vecColor;
                 SplitStringToUInt8(strColor, vecColor);
 
+                /* Replace unknown label by other label at random */
                 if(strCategory == "unknown")
                 {
                     /* Make it any object at random */
@@ -75,6 +100,8 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                     strCategory =  POINTCLOUD_TABLE[pcRNG->Uniform(cIndexRange)];
                 }
 
+                /* Ignore untrained classifier types and 
+                 object types with prediction accuracy < 50% */
                 if(CCategoryMap::StringToCategoryMap.count(strCategory) == 0 ||
                     strCategory == "box" || strCategory == "bag")
                 {
@@ -86,6 +113,17 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 std::vector<Real> vecBox;
                 SplitStringToReal(strBoundingBox, vecBox);
 
+                Real fSizeX = Min(vecBox[3], 0.7);
+                Real fSizeY = Min(vecBox[4], 0.7);
+                Real fSizeZ = Min(vecBox[5], 0.5);
+
+                /* Ignore very small objects */
+                if(fSizeX < 0.05 || fSizeY < 0.05 || fSizeZ < 0.05)
+                {
+                    LOG << "Not importing " << strCategory << " bc too small" << std::endl;
+                    continue;
+                } 
+
                 LOG << strPCEntityId << " " << strCategory << " " << strBoundingBox 
                 << " Color " << strColor << '\n';
 
@@ -93,16 +131,18 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 // std::vector<Real> vecPose;
                 // SplitStringToReal(strPose, vecPose);
 
+
                 /* Create the new point cloud entity*/
                 CPointCloudEntity* pcObject = new CPointCloudEntity(
                     strPCEntityId,
-                    CVector3(vecBox[0], vecBox[1], 0.), //position
+                    CVector3(-5,-5,0), //position
                     // CQuaternion(vecPose[0], vecPose[1], vecPose[2], vecPose[3]), // orientation
                     CQuaternion(),//vecBox[6], vecBox[7], vecBox[8], vecBox[9]), // orientation
-                    CVector3(Min(vecBox[3], 0.5), Min(vecBox[4], 0.5), Min(vecBox[5], 0.5)), //size
+                    CVector3(fSizeX, fSizeY, fSizeZ), //size
                     strCategory, // category 
                     CColor(vecColor[0], vecColor[1], vecColor[2]) // color
-                    );
+                );
+
 
                 /* Add it to the simulation */
                 AddEntity(*pcObject);
@@ -110,12 +150,28 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                 CDynamics2DEngine* pcEngine = &dynamic_cast<CDynamics2DEngine&>(CSimulator::GetInstance().GetPhysicsEngine("dyn2d"));
                 CDynamics2DPointCloudModel* pcModel = new CDynamics2DPointCloudModel(*pcEngine, *pcObject);
                 pcObject->GetEmbodiedEntity().AddPhysicsModel(ToString("dyn2d"), *pcModel);
+
+                if(MoveEntity(pcObject->GetEmbodiedEntity(), CVector3(vecBox[0], vecBox[1], 0.), CQuaternion()))
+                {
+                    /* Write to file */
+                    m_ofOutputFile << "<point_cloud id=\"" << strPCEntityId 
+                                <<"\" size=\" " << fSizeX << "," << fSizeY << "," << fSizeZ
+                                <<"\" category=\""<< strCategory
+                                <<"\" color=\""<< vecColor[0] << "," << vecColor[1] << "," << vecColor[2] << ",1" <<"\"" << '\n'; 
+                    m_ofOutputFile << "medium=\"point_clouds\">" << '\n';
+                    m_ofOutputFile << "\t<body position=\""<< vecBox[0] << "," << vecBox[1] << "," << "0" <<"\" orientation=\"0,0,0\"/>" << '\n';
+                    m_ofOutputFile << "</point_cloud>" << '\n';
+                    m_ofOutputFile << '\n';
+                }
+
                 pcObject->CalculateFaceCorners();
+
                 /* Set medium */
                 CPointCloudMedium* pcPointCloudMedium = &CSimulator::GetInstance().GetMedium<CPointCloudMedium>(ToString("point_clouds"));
                 pcObject->SetMedium(*pcPointCloudMedium);
                 pcPointCloudMedium->AddEntity(*pcObject);
                 m_pcPointClouds.push_back(pcObject);
+
                 ++count;
 
             }
@@ -123,7 +179,7 @@ void CSceneNNPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                     THROW_ARGOSEXCEPTION_NESTED("Error initializing point cloud", ex);
             }
         }
-        if (count > 30) break;
+        // if (count > 30) break;
     }
 }
 

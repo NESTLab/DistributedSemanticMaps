@@ -10,6 +10,7 @@
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/utility/configuration/tinyxml/tinyxml.h>
 #include <argos3/plugins/simulator/entities/point_cloud_entity.h>
+#include <fstream>
 
 using namespace argos;
 
@@ -32,6 +33,7 @@ public:
 private:
 
    std::vector<CPointCloudEntity*> m_pcPointClouds;
+   std::ofstream m_ofOutputFile;
 
 };
 
