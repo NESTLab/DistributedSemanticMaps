@@ -409,8 +409,14 @@ public:
    /* Get timing info for all voting decisions */
    std::vector<STimingInfo>& GetTimingInfo();
 
+   /* Get all observations */
+   inline std::vector<SEventData>& GetObservations() {return m_vecObservations;}
+
    /* Reset vector of voting decisions */
    inline void ClearVotingDecisions() { m_vecVotingDecisions.clear(); }
+
+   /* Reset vector of voting decisions */
+   inline void ClearObservations() { m_vecObservations.clear(); }
 
    /* Reset vector of timing info */
    inline void ClearTimingInfo() { m_vecTimingInfo.clear(); }
@@ -442,11 +448,19 @@ private:
    UInt16 m_unTimeLastRecording;
    UInt16 m_unTimeLastQuery;
 
+   /*****************************************************/
+   /* Variables for logging/debugging (cleared every time step) */
+
    /* Vector of decisions made by the robot after majority voting */
    std::vector<SEventData> m_vecVotingDecisions;
 
+   /* Vector of observations made by the robot (for debugging only) */
+   std::vector<SEventData> m_vecObservations;
+
    /* Vector of timing info for all voting events */
    std::vector<STimingInfo> m_vecTimingInfo;
+
+   /*****************************************************/
 
    /* Returns the list of events recorded by the robot
       at the current time step */

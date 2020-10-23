@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="100"
+    <experiment length="0"
                 ticks_per_second="10"
                 random_seed="1" />
   </framework>
@@ -25,7 +25,7 @@
       <sensors>
         <footbot_proximity implementation="default" show_rays="false" /> 
         <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
-        <positioning implementation="default" pos_noise_range="-0.1:0.2"/>
+        <positioning implementation="default"/>
 
         <cameras implementation="default"> 
         <!-- show_frustum="true"> -->
@@ -107,7 +107,7 @@
 
     <point_cloud id="656080" size=" 0.0606639,0.7,0.324359" category="door" color="108,71,13,1"
     medium="point_clouds">
-      <body position="3.4822,-1.89472,0" orientation="180,0,0"/>
+      <body position="3.4822,-3.2,0" orientation="180,0,0"/>
     </point_cloud>
 
     <point_cloud id="651965" size=" 0.186066,0.298653,0.426326" category="desk" color="112,144,15,1"
@@ -137,7 +137,7 @@
 
     <point_cloud id="264980" size=" 0.111111,0.7,0.30584" category="sofa" color="73,40,150,1"
     medium="point_clouds">
-      <body position="3.55196,-1.11772,0" orientation="180,0,0"/>
+      <body position="3.55196,2.5,0" orientation="180,0,0"/>
     </point_cloud>
 
     <point_cloud id="481308" size=" 0.0666127,0.7,0.423078" category="sofa" color="154,107,160,1"
@@ -273,7 +273,7 @@
     <distribute>
       <position method="uniform" min="-4,-4,0" max="4,4,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="30" max_trials="100" base_num="1">
+      <entity quantity="60" max_trials="100" base_num="1">
         <foot-bot id="K" rab_data_size="1000" rab_range="2">
           <controller config="knc" />
         </foot-bot>

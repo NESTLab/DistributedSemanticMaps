@@ -30,8 +30,6 @@ public:
    virtual void PreStep();
    virtual void PostStep();
    
-   void PlaceCluster(const CVector2& c_center,UInt32 un_pointClouds,
-                     Real f_density);
    virtual void Destroy();
    virtual void PostExperiment();
 
@@ -39,6 +37,11 @@ public:
    void SplitString(std::string str, std::vector<std::string>& buffer);
    void SplitStringToReal(std::string str, std::vector<Real>& buffer);
    void SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer);
+
+   // inline const std::unordered_map<SLocation, std::string, SLocation>& GetMapVotes() const
+   // {
+   //    return m_mapVotedCategories;
+   // }
 
 private:
 

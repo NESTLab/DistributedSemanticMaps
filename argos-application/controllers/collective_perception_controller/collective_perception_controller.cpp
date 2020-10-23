@@ -313,6 +313,8 @@ void CCollectivePerception::Diffuse()
 
 void CCollectivePerception::ControlStep() 
 {
+   ClearVotingDecisions();
+   ClearObservations();
 
    /* Process incoming messages */
    ProcessInMsgs();
@@ -333,6 +335,7 @@ void CCollectivePerception::ControlStep()
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
       m_cMySM.Put(sEvent);
+      m_vecObservations.push_back(sEvent);
       LOG << "Put as new observation \n";
    }
 
@@ -577,6 +580,7 @@ SEventData CCollectivePerception::ConsolidateObservations(
    sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated);
    /* Location */
    sEvent.Location = s_loc;
+   LOG << sEvent.Type << " " << unTopIndex << std::endl;
    return sEvent;
 }
 
