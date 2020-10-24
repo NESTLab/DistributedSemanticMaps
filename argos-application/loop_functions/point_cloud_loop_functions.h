@@ -16,6 +16,9 @@
 #include <argos3/core/utility/configuration/tinyxml/tinyxml.h>
 #include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
+const UInt16 NUM_POINT_CLOUDS = 42;
+const UInt16 MAX_TIME = 10000;
+
 using namespace argos;
 
 class CPointCloudLoopFunctions : public CLoopFunctions {
@@ -33,15 +36,11 @@ public:
    virtual void Destroy();
    virtual void PostExperiment();
 
+   virtual bool IsExperimentFinished();
 
    void SplitString(std::string str, std::vector<std::string>& buffer);
    void SplitStringToReal(std::string str, std::vector<Real>& buffer);
    void SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer);
-
-   // inline const std::unordered_map<SLocation, std::string, SLocation>& GetMapVotes() const
-   // {
-   //    return m_mapVotedCategories;
-   // }
 
 private:
 

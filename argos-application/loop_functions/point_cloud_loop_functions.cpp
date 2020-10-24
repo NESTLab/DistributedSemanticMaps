@@ -145,6 +145,18 @@ void CPointCloudLoopFunctions::PostStep() {
     m_ofOutputFile << fLoad << ' ' << unTotalBytesSent << '\n'; 
 }
 
+/****************************************/
+/****************************************/
+
+bool CPointCloudLoopFunctions::IsExperimentFinished() {
+    if(m_mapVotedCategories.size() == NUM_POINT_CLOUDS || m_unClock > MAX_TIME)
+        return true;
+    return false;
+}
+
+/****************************************/
+/****************************************/
+
 void CPointCloudLoopFunctions::PostExperiment() {
 
 }
