@@ -14,14 +14,15 @@ with open(file_name, 'r') as file:
     while True:
         line = file.readline()
         if not line:
-            break
+            break    
         timestep = int(line)
-
-        for i in range(n_robots):
-            ids = list(map(int, file.readline().split(' ')))
-            node_ids.append(ids[0])
-            if len(ids) > 1:
-                hashes.extend(ids[1:])
+        
+        for _ in range(n_robots):
+            node_id, num_tuples = map(int, file.readline().split(' '))
+            for _ in range(num_tuples):
+                identifier, hash = map(int, file.readline().split(' '))
+                hashes.append(hash)
+            node_ids.append(node_id)
 
 plt.hist(node_ids, bins = n_robots, alpha = 0.5, label = 'Node IDs')
 plt.hist(hashes, bins = n_robots, alpha = 0.5, label = 'Hashes')

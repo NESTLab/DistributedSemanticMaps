@@ -117,7 +117,7 @@ void CPointCloudLoopFunctions::PostStep() {
         std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
 
         m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << vecVotingDecisions.size() << '\n';
-        m_ofHistogramFile << m_vecControllers[i]->GetNodeID();
+        m_ofHistogramFile << m_vecControllers[i]->GetNodeID() << ' ';
 
         for (int i = 0; i < vecVotingDecisions.size(); i++) {
             SEventData sVotingDecision = vecVotingDecisions[i];
@@ -131,11 +131,11 @@ void CPointCloudLoopFunctions::PostStep() {
                 sVotingDecision.Location.X << ' ' << sVotingDecision.Location.Y << 
                 ' ' << sVotingDecision.Location.Z << '\n';
         }
-        std::vector<uint16_t> vecHashes = m_vecControllers[i]->GetHashes();
-        for (auto hash : vecHashes) {
-            m_ofHistogramFile << ' ' << hash;
+        std::vector<STuple> vecTuples = m_vecControllers[i]->GetTuples();
+        m_ofHistogramFile << vecTuples.size() << '\n';
+        for (STuple sTuple : vecTuples) {
+            m_ofHistogramFile << sTuple.Key.Identifier << ' ' << sTuple.Key.Hash << '\n';
         }
-        m_ofHistogramFile << '\n';
         // m_vecControllers[i]->ClearVotingDecisions(); // cleared in controller, using it in qtuser loop fcts
         m_vecControllers[i]->ClearTimingInfo();
         m_vecControllers[i]->SetMessageCount(0);
@@ -158,7 +158,7 @@ bool CPointCloudLoopFunctions::IsExperimentFinished() {
 /****************************************/
 
 void CPointCloudLoopFunctions::PostExperiment() {
-
+    
 }
 
 REGISTER_LOOP_FUNCTIONS(CPointCloudLoopFunctions, "point_cloud_loop_functions");

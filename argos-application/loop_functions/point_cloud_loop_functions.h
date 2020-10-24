@@ -6,6 +6,7 @@
 #include <utility>
 #include <unordered_map>
 
+#include <swarmmesh.h>
 /* The controller */
 #include <controllers/collective_perception_controller/collective_perception_controller.h>
 
@@ -16,6 +17,7 @@
 #include <argos3/core/utility/configuration/tinyxml/tinyxml.h>
 #include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
+typedef typename swarmmesh::CSwarmMesh<SEventData>::STuple STuple;
 const UInt16 NUM_POINT_CLOUDS = 42;
 const UInt16 MAX_TIME = 10000;
 
@@ -41,6 +43,11 @@ public:
    void SplitString(std::string str, std::vector<std::string>& buffer);
    void SplitStringToReal(std::string str, std::vector<Real>& buffer);
    void SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer);
+
+   // inline const std::unordered_map<SLocation, std::string, SLocation>& GetMapVotes() const
+   // {
+   //    return m_mapVotedCategories;
+   // }
 
 private:
 

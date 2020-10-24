@@ -466,7 +466,7 @@ public:
 
    inline UInt32 GetBytesSent() { return m_unBytesSent; }
 
-   const std::vector<uint16_t>& GetHashes() { return m_vecHashes; }
+   const std::vector<STuple>& GetTuples() { return m_vecTuples; }
    
 
 private:
@@ -510,7 +510,7 @@ private:
    /* Vector of timing info for all voting events */
    std::vector<STimingInfo> m_vecTimingInfo;
 
-   std::vector<uint16_t> m_vecHashes;
+   std::vector<STuple> m_vecTuples;
 
    /*****************************************************/
 
@@ -523,6 +523,8 @@ private:
 
    /* Aggregates results of queries on SwarmMesh */
    void AggregateObservations();
+
+   void StoreTuples();
 
    SEventData ConsolidateObservations(const std::vector<STuple>& vec_tuples, const SLocation& s_loc);
 
