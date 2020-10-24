@@ -146,7 +146,10 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    else if(strCategory  ==  "bag") {unHash = 1 + 13 * BUCKET_SIZE;}
    else if(strCategory  ==  "box") {unHash = 1 + 14 * BUCKET_SIZE;}
    /* Consolidated observation */
-   else if (strCategory == "collective_label") {unHash = 1 + 15 * BUCKET_SIZE;}
+   else if (strCategory == "collective_label") {
+      LOG << "HASHING COLLECTIVE LABEL" << std::endl;
+      unHash = 1 + 15 * BUCKET_SIZE;
+      }
    else  unHash = 0;
 
    /* Unique tuple identifier based on robot id and 
@@ -157,9 +160,9 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    return swarmmesh::SKey(unHash, unIdentifier);
 }
 
-void CMySwarmMesh::Init(uint16_t un_robotId, uint16_t un_rabSize) {
+void CMySwarmMesh::Init(uint16_t un_robotId, uint16_t un_rabSize, uint16_t un_storageSize, uint16_t un_routingSize) {
    m_cHashEvent.Init(un_robotId);
-   CSwarmMesh::Init(un_robotId, m_cHashEvent, un_rabSize); 
+   CSwarmMesh::Init(un_robotId, m_cHashEvent, un_rabSize, un_storageSize, un_routingSize); 
 }
 
 /****************************************/
@@ -206,7 +209,6 @@ void CLocationFilter::Init(const std::unordered_map<std::string, std::any>& map_
 bool CLocationFilter::operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple& s_tuple) {
    CVector3 cEventCoord = CVector3(m_sEventLocation.X, m_sEventLocation.Y, m_sEventLocation.Z);
    CVector3 cTupleCoord = CVector3(s_tuple.Value.Location.X, s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
-
    return Distance(cEventCoord, cTupleCoord) <= m_fRadius;
 }
 
@@ -228,9 +230,50 @@ size_t CLocationFilter::Deserialize(const std::vector<uint8_t>& vec_buffer, size
 /****************************************/
 /****************************************/
 
+std::unordered_map<std::string, std::any> CLocationExceptTupleFilter::GetParams() {
+   std::unordered_map<std::string, std::any> mapFilterParams;
+   mapFilterParams["radius"] = m_fRadius;
+   mapFilterParams["location"] = m_sEventLocation;
+   mapFilterParams["except"] = m_unIdException;
+   return mapFilterParams;
+}
+
+void CLocationExceptTupleFilter::Init(const std::unordered_map<std::string, std::any>& map_filterParams) {
+   m_fRadius = std::any_cast<float>(map_filterParams.at("radius"));
+   m_sEventLocation = std::any_cast<SLocation>(map_filterParams.at("location"));
+   m_unIdException = std::any_cast<uint32_t>(map_filterParams.at("except"));
+}
+
+bool CLocationExceptTupleFilter::operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple& s_tuple) {
+   CVector3 cEventCoord = CVector3(m_sEventLocation.X, m_sEventLocation.Y, m_sEventLocation.Z);
+   CVector3 cTupleCoord = CVector3(s_tuple.Value.Location.X, s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
+   return s_tuple.Key.Identifier != m_unIdException && Distance(cEventCoord, cTupleCoord) <= m_fRadius;
+}
+
+void CLocationExceptTupleFilter::Serialize(std::vector<uint8_t>& vec_buffer) {
+   swarmmesh::PackFloat(vec_buffer, m_fRadius);
+   swarmmesh::PackFloat(vec_buffer, m_sEventLocation.X);
+   swarmmesh::PackFloat(vec_buffer, m_sEventLocation.Y);
+   swarmmesh::PackFloat(vec_buffer, m_sEventLocation.Z);
+   swarmmesh::PackUInt32(vec_buffer, m_unIdException);
+}
+
+size_t CLocationExceptTupleFilter::Deserialize(const std::vector<uint8_t>& vec_buffer, size_t un_offset) {
+   m_fRadius = swarmmesh::UnpackFloat(vec_buffer, un_offset);
+   m_sEventLocation = {swarmmesh::UnpackFloat(vec_buffer, un_offset), 
+                       swarmmesh::UnpackFloat(vec_buffer, un_offset),
+                       swarmmesh::UnpackFloat(vec_buffer, un_offset)};
+   m_unIdException = swarmmesh::UnpackUInt32(vec_buffer, un_offset);
+   return un_offset;
+}
+
+/****************************************/
+/****************************************/
+
 CCollectivePerception::CCollectivePerception() :
    m_unMessageCount(0),
    m_unClock(0),
+   m_unMinVotes(3),
    m_unTimeLastRecording(0),
    m_unTimeLastQuery(0),
    m_pcWheels(NULL),
@@ -256,7 +299,6 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
 
    m_pcCamera = GetSensor <CCI_CameraSensor>("cameras");
 
-
    m_pcRNG = CRandom::CreateRNG("argos");
 
    /* Parse the configuration file */
@@ -265,12 +307,19 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
    GetNodeAttributeOrDefault(t_node, "delta", m_fDelta, m_fDelta);
    GetNodeAttributeOrDefault(t_node, "velocity", m_fWheelVelocity, m_fWheelVelocity);
 
+   GetNodeAttributeOrDefault(t_node, "min_votes", m_unMinVotes, m_unMinVotes);
+
    /* Initialize SwarmMesh variables */
    const std::string& strRobotId = GetId();
    m_unRobotId = FromString<UInt16>(strRobotId.substr(1));
    m_unTupleCount = 0; 
    uint16_t unMsgSize = m_pcRABA->GetSize();
-   m_cMySM.Init(m_unRobotId, unMsgSize);
+   uint16_t unStorageSize, unRoutingSize;
+   GetNodeAttribute(t_node, "storage", unStorageSize);
+   GetNodeAttribute(t_node, "routing", unRoutingSize);
+
+
+   m_cMySM.Init(m_unRobotId, unMsgSize, unStorageSize, unRoutingSize);
    ProcessOutMsgs();
 }
 
@@ -336,7 +385,7 @@ void CCollectivePerception::ControlStep()
       /* Perform a put operation in SwarmMesh */
       m_cMySM.Put(sEvent);
       m_vecObservations.push_back(sEvent);
-      LOG << "Put as new observation \n";
+      // LOG << "Put as new observation \n";
    }
 
    /* Request observations from SwarmMesh */
@@ -392,10 +441,10 @@ std::queue<SEventData> CCollectivePerception::RecordEvents()
       m_unTimeLastRecording = m_unClock;
    }
 
-   /* Debugging info */
-   if(tReadings.size() > 0){
-      LOG << m_strId << " sees " << tReadings[0].Category << " at " << tReadings[0].Center << '\n';
-   }
+   // /* Debugging info */
+   // if(tReadings.size() > 0){
+   //    LOG << m_strId << " sees " << tReadings[0].Category << " at " << tReadings[0].Center << '\n';
+   // }
 
    return sEvents;
 }
@@ -409,40 +458,42 @@ void CCollectivePerception::RequestObservations()
    /* Vector of stored tuples sorted in descending order 
       of data importance */
    std::vector<STuple>& vecTuples = m_cMySM.StoredTuples();
+
+   /* Variable only for logging */
    m_unNumStoredTuples += vecTuples.size();
 
-   /* Minimum number of observations in a given locations to 
-      trigger a query on the shared memory */
-   UInt16 unMinLocalObservations = CONSOLIDATION_QUOTA;
-
-   /* No requests if zero threshold */
+   /* No requests if recent request */
    if(m_unClock < m_unTimeLastQuery + QUERY_TIMEOUT) return;
 
+   /* Return if no stored tuples */
    if(vecTuples.size() == 0) return;
 
-   // LOG << "Num tuples" << vecTuples.size() << '\n';
-   // LOG << "Threshold" << unMinLocalObservations << '\n';
-
-   auto it = vecTuples.begin();
-   /* Exclude consolidated observations */
-   while (it->Key.Hash > 1 + 14 * BUCKET_SIZE && it != vecTuples.end()) ++it;
-   /* No requests if no raw observations */
-   if (it == vecTuples.end()) return;
-
+   /* Exclude consolidated labels */
+   size_t index = 0;
+   while (vecTuples[index].Key.Hash > 1 + 14 * BUCKET_SIZE && index < vecTuples.size()) ++index;
+   if (index == vecTuples.size()) return;
+   
    std::unordered_map<std::string, std::any> mapFilterParams;
+   
+   /* Iterate through tuples in random order */
+   std::vector<UInt16> order(vecTuples.size() - index);
+   std::iota(order.begin(), order.end(), index);
+   m_pcRNG->Shuffle(order);
 
-   while (it != vecTuples.end())
+   for(size_t i = 0 ; i < order.size() ; ++i)
    {
-      STuple sTuple = *it;
+      index = order[i];
+      STuple sTuple = vecTuples[index];
       float fRadius = sTuple.Value.Payload.Radius;
       SLocation sLocation(sTuple.Value.Location);
-      /* Look for at least unMinLocalObservations
+      /* Look for at least MIN_LOCAL_OBSERVATIONS
          in the region of the tuple */
-      auto found = it;
+      auto found = vecTuples.begin();
       uint16_t count = 0;
       while(found != vecTuples.end())
       {
          /* Check if distance within noise radius */
+         /* Note: no noise on position for now so unnecessary */
          found = std::find_if(found, vecTuples.end(),
          [sTuple] (const STuple& s_tuple) { 
             CVector3 cTupleLocation(sTuple.Value.Location.X, 
@@ -456,7 +507,7 @@ void CCollectivePerception::RequestObservations()
          ++found;
       } 
       /* If we have found at least as many observations as min*/
-      if(count >= unMinLocalObservations) 
+      if(count >= MIN_LOCAL_OBSERVATIONS) 
       {
          float fRadius = NOISE_THRESHOLD;
          /* Create spatial request for tuple of most important type */
@@ -468,13 +519,12 @@ void CCollectivePerception::RequestObservations()
          m_mapQueryTimings[unQueryId] = STimingInfo(m_unClock, m_unClock);
 
          LOG << m_strId << " made request for (" <<  sLocation.X << ", " 
-         << sLocation.Y << ", " << sLocation.Z << ") \n";
+         << sLocation.Y << ") \n";
+
          m_unTimeLastQuery = m_unClock;
          return;
       }
-      ++it;
    }
-
 }
 
 void CCollectivePerception::AggregateObservations()
@@ -494,46 +544,55 @@ void CCollectivePerception::AggregateObservations()
       /* If query results available */
       if(mapResults.count(*it) != 0)
       {
-
          /* If received new results to query */
          if (m_mapQueryTimings[*it].NumReplies != mapResults[*it].size()) {
             m_mapQueryTimings[*it].NumReplies = mapResults[*it].size();
             m_mapQueryTimings[*it].LastUpdate = m_unClock;
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
             LOG << "Got result for query for (" << sLoc.X << ", " <<
-            sLoc.Y << ", " << sLoc.Z << ") \n"; 
+            sLoc.Y << ") \n"; 
          }
          /* No more expected results? */
          else if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
             && m_mapQueryTimings[*it].Done == false)
          {
-            /* Delete the observations used */
-            m_cMySM.Erase((uint8_t)1, m_mapQueries[*it]);
+            /* Consolidate only if even observations */
+            if(mapResults[*it].size() >= m_unMinVotes)
+            {
+               /* Get location from emitted query */
+               SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
 
-            /* Get location from emitted query */
-            SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
+               /* Write consolidated prediction */
+               SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
+               /* Variable only for logging */
+               m_vecVotingDecisions.push_back(sEvent);
+               m_vecTimingInfo.push_back(m_mapQueryTimings[*it]);
 
-            LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
-            sLoc.Y << ", " <<  sLoc.Z << '\n';
-            
+               LOG << m_unRobotId << " writing " << sEvent.Type << " " << sEvent.Payload.Category
+               << " for (" << sEvent.Location.X << ", " <<
+               sEvent.Location.Y << ") with "
+               << (int) sEvent.Payload.Radius << " observations" << '\n';
 
-            // /* Write consolidated prediction */;
-            SEventData sEvent = ConsolidateObservations(mapResults[*it], sLoc);
-            m_vecVotingDecisions.push_back(sEvent);
-            m_vecTimingInfo.push_back(m_mapQueryTimings[*it]);
+               /* Variable only for logging */
+               m_unMessageCount++;
+               uint32_t unTupleId = (m_cMySM.Put(sEvent)).Identifier;
 
-            LOG << m_unRobotId << " writing label " << sEvent.Payload.Category
-            << " for (" << sEvent.Location.X << ", " <<
-            sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
-            << (int) sEvent.Payload.Radius << " observations" << '\n';
-            m_unMessageCount++;
-            m_cMySM.Put(sEvent);
+               /* Delete the tuples at the location, 
+                  except consolidated label*/
+               std::unordered_map<std::string, std::any> mapFilterParams;
+               mapFilterParams["radius"] = std::any_cast<float>(m_mapQueries[*it].at("radius"));
+               mapFilterParams["location"] = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
+               mapFilterParams["except"] = (uint32_t) unTupleId;
+               m_cMySM.Erase((uint8_t) 2, mapFilterParams);
+               
+               LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
+               sLoc.Y  << " except tuple " << unTupleId <<'\n';
 
-            /* Avoid consolidating again */
+            }
+
+            /* Avoid trying to consolidate again for this query */
             m_mapQueryTimings[*it].Done = true;
-
          }
-         
       }
 
    }
@@ -580,7 +639,6 @@ SEventData CCollectivePerception::ConsolidateObservations(
    sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated);
    /* Location */
    sEvent.Location = s_loc;
-   LOG << sEvent.Type << " " << unTopIndex << std::endl;
    return sEvent;
 }
 

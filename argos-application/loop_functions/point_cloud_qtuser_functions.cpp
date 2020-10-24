@@ -2,7 +2,6 @@
 
 static const CColor COLOR_TABLE[16] = {CColor::GRAY10,
                                        CColor::WHITE,
-                                       CColor::RED,
                                        CColor::GREEN,
                                        CColor::BLUE,
                                        CColor::MAGENTA,
@@ -15,7 +14,8 @@ static const CColor COLOR_TABLE[16] = {CColor::GRAY10,
                                        CColor::GRAY40,
                                        CColor::GRAY30,
                                        CColor::GRAY20,
-                                       CColor::GRAY80};
+                                       CColor::GRAY80,
+                                       CColor::RED};
 
 /****************************************/
 /****************************************/
@@ -81,8 +81,7 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
       strText = "[" + ToString(sTuple.Key.Hash) + ", " 
                  + ToString(sTuple.Value.Type) + ", (" 
                  + ToString(sTuple.Value.Location.X) + ","
-                 + ToString(sTuple.Value.Location.Y) + ","
-                 + ToString(sTuple.Value.Location.Z) + ")"
+                 + ToString(sTuple.Value.Location.Y) + ")"
                  + "]";
       cColor = COLOR_TABLE[(sTuple.Key.Hash - 1)/BUCKET_SIZE];
       DrawText(cPos,
@@ -104,7 +103,7 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
    {
       sTuple = tRoutingQueue.back();
       strText = "[" + ToString(sTuple.Key.Hash) + ", " 
-                 + ToString(sTuple.Value.Payload.Category) + "]";
+                 + ToString(sTuple.Value.Type) + "]";
       cColor = COLOR_TABLE[(sTuple.Key.Hash - 1)/BUCKET_SIZE];
       DrawText(cPos,
             strText.c_str(),

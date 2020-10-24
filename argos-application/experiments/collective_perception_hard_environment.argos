@@ -39,7 +39,8 @@
         </cameras>
 
       </sensors>
-      <params alpha="7.5" delta="0.1" velocity="5" />
+      <params alpha="7.5" delta="0.1" velocity="5" storage="10" routing="5" bucket="5"
+              min_votes="5"/>
     </collective_perception_controller>
 
   </controllers>
@@ -70,27 +71,27 @@
       <body position="-4,0,0" orientation="0,0,0" />
     </box>
     
-    <point_cloud id="610041" size=" 0.7,0.7,0.5" category="bed" color="195,224,75,1"
+    <point_cloud id="610041" size=" 0.5,0.5,0.5" category="bed" color="195,224,75,1"
     medium="point_clouds">
       <body position="-3.50479,-0.426385,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="1547362" size=" 0.398563,0.7,0.5" category="door" color="241,196,116,1"
+    <point_cloud id="1547362" size=" 0.398563,0.5,0.5" category="door" color="241,196,116,1"
     medium="point_clouds">
       <body position="-0.455754,-1.9828,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="1348911" size=" 0.0657778,0.7,0.5" category="door" color="36,242,138,1"
+    <point_cloud id="1348911" size=" 0.0657778,0.5,0.5" category="door" color="36,242,138,1"
     medium="point_clouds">
       <body position="-1.18264,-0.520413,0" orientation="180,0,0"/>
     </point_cloud>
 
-    <point_cloud id="1513254" size=" 0.527078,0.619254,0.5" category="cabinet" color="139,41,45,1"
+    <point_cloud id="1513254" size=" 0.427078,0.419254,0.4" category="cabinet" color="139,41,45,1"
     medium="point_clouds">
       <body position="0.180176,1.01383,0" orientation="0,0,0"/>
     </point_cloud>
 
-    <point_cloud id="1536518" size=" 0.7,0.597436,0.215725" category="desk" color="250,241,183,1"
+    <point_cloud id="1536518" size=" 0.5,0.497436,0.215725" category="desk" color="250,241,183,1"
     medium="point_clouds">
       <body position="0.382683,-0.406525,0" orientation="90,0,0"/>
     </point_cloud>
@@ -115,7 +116,7 @@
       <body position="2.49659,-2.00526,0" orientation="180,0,0"/>
     </point_cloud>
 
-    <point_cloud id="38764" size=" 0.336296,0.7,0.0932574" category="desk" color="52,237,197,1"
+    <point_cloud id="38764" size=" 0.336296,0.5,0.0932574" category="desk" color="52,237,197,1"
     medium="point_clouds">
       <body position="3.37766,0.324942,0" orientation="180,0,0"/>
     </point_cloud>
@@ -135,14 +136,14 @@
       <body position="1.94707,-2.96213,0" orientation="90,0,0"/>
     </point_cloud>
 
-    <point_cloud id="264980" size=" 0.111111,0.7,0.30584" category="pillow" color="73,40,150,1"
+    <point_cloud id="264980" size=" 0.111111,0.5,0.30584" category="pillow" color="73,40,150,1"
     medium="point_clouds">
       <body position="3.55196,2.5,0" orientation="180,0,0"/>
     </point_cloud>
 
-    <point_cloud id="481308" size=" 0.0666127,0.7,0.423078" category="pillow" color="154,107,160,1"
+    <point_cloud id="481308" size=" 0.0666127,0.5,0.423078" category="pillow" color="154,107,160,1"
     medium="point_clouds">
-      <body position="3.45682,-1.07802,0" orientation="180,0,0"/>
+      <body position="3.45682,1.7,0" orientation="180,0,0"/>
     </point_cloud>
 
     <point_cloud id="676132" size=" 0.143888,0.584851,0.225624" category="bed" color="163,100,250,1"

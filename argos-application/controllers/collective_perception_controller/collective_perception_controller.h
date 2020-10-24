@@ -22,14 +22,19 @@
 #include <unordered_map>
 #include <algorithm>
 #include <functional>
+#include <numeric>
 
 /* TODO: make this configurable */
-const uint16_t BUCKET_SIZE = 5;
-const uint16_t RECORDING_TIMEOUT = 30;
-const uint16_t QUERY_TIMEOUT = 200;
-const uint16_t UPDATE_TIMEOUT = 10;
-const float CONSOLIDATION_QUOTA = 2;
-const float NOISE_THRESHOLD = 0.3;
+const uint16_t BUCKET_SIZE = 5; // for hashing
+
+const uint16_t RECORDING_TIMEOUT = 20; // time out on recording observations
+const uint16_t QUERY_TIMEOUT = 50; // time out on asking for votes
+const uint16_t UPDATE_TIMEOUT = 10; // time out on waiting for new replies (maybe a bit low)
+
+const uint16_t MIN_LOCAL_OBSERVATIONS = 2; // trigger for asking for votes
+const uint16_t MIN_NUM_VOTES = 5; // trigger for writing consolidated label
+
+const float NOISE_THRESHOLD = 0.3; // remove? no position noise in the simulation
 
 /****************************************/
 /****************************************/
@@ -39,6 +44,7 @@ class CCollectivePerception;
 class CHashEventDataType;
 class CTypeFilter;
 class CLocationFilter;
+class CLocationExceptTupleFilter;
 
 /****************************************/
 /****************************************/
@@ -229,8 +235,9 @@ public:
                  PackEventDataType) {
                     RegisterFilter<CTypeFilter>(this);
                     RegisterFilter<CLocationFilter>(this);
+                    RegisterFilter<CLocationExceptTupleFilter>(this);
                  }
-   void Init(uint16_t un_robot_id, uint16_t un_msgSize);
+   void Init(uint16_t un_robot_id, uint16_t un_msgSize, uint16_t un_storageSize, uint16_t un_routingSize);
    
    ~CMySwarmMesh() {
    }
@@ -273,6 +280,28 @@ class CLocationFilter : public swarmmesh::CSwarmMesh<SEventData>::CFilterOperati
          swarmmesh::CSwarmMesh<SEventData>::CFilterOperation(pc_sm) {}
       
       ~CLocationFilter() {}
+      bool operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple&) override;
+      void Serialize(std::vector<uint8_t>&) override;
+      size_t Deserialize(const std::vector<uint8_t>&, size_t) override;
+      void Init(const std::unordered_map<std::string, std::any>&) override;
+      std::unordered_map<std::string, std::any> GetParams() override;
+};
+
+/**
+ * Functor to filter tuples according to their location with the exception 
+ * of a specific tuple
+ * 
+ */
+class CLocationExceptTupleFilter : public swarmmesh::CSwarmMesh<SEventData>::CFilterOperation {
+   private:
+      SLocation m_sEventLocation;
+      float m_fRadius;
+      uint32_t m_unIdException;
+   public: 
+      CLocationExceptTupleFilter(swarmmesh::CSwarmMesh<SEventData>* pc_sm) : 
+         swarmmesh::CSwarmMesh<SEventData>::CFilterOperation(pc_sm) {}
+      
+      ~CLocationExceptTupleFilter() {}
       bool operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple&) override;
       void Serialize(std::vector<uint8_t>&) override;
       size_t Deserialize(const std::vector<uint8_t>&, size_t) override;
@@ -438,9 +467,12 @@ private:
 
    UInt32 m_unNumStoredTuples;
 
+   UInt16 m_unMinVotes;
+
    /* Pointer to random number generator */
    CRandom::CRNG* m_pcRNG;
 
+   /* Neighbors */
    std::vector<SNeighbor> m_vecNeighbors;
 
    /* Internal clock */
