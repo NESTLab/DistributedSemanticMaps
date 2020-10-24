@@ -382,7 +382,7 @@ void CCollectivePerception::ControlStep()
       sEvents.pop();
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
-      m_vecHashes.push_back((m_cMySM.Put(sEvent)).Hash);
+      m_cMySM.Put(sEvent);
       m_vecObservations.push_back(sEvent);
       // LOG << "Put as new observation \n";
    }
@@ -395,6 +395,7 @@ void CCollectivePerception::ControlStep()
 
    m_unNumRoutingTuples += m_cMySM.RoutingTuples().size();
 
+   StoreTuples();
    /* Tell SwarmMesh to queue messages for routing data */
    m_cMySM.Route();
 
@@ -579,7 +580,6 @@ void CCollectivePerception::AggregateObservations()
                m_unMessageCount++;
 	            swarmmesh::SKey sKey = m_cMySM.Put(sEvent);
 	            uint32_t unTupleId = sKey.Identifier;
-	            m_vecHashes.push_back(sKey.Hash);
 
                /* Delete the tuples at the location, 
                   except consolidated label*/
@@ -710,6 +710,20 @@ void CCollectivePerception::ProcessOutMsgs()
 
    m_pcRABA->SetData(cBuffer);
 
+}
+
+/****************************************/
+/****************************************/
+void CCollectivePerception::StoreTuples() {
+   m_vecTuples.clear();
+   std::vector<STuple> vecTuples = m_cMySM.StoredTuples();
+   for (STuple sTuple : vecTuples) {
+      m_vecTuples.push_back(sTuple);
+   }
+   vecTuples = m_cMySM.RoutingTuples();
+   for (STuple sTuple : vecTuples) {
+      m_vecTuples.push_back(sTuple);
+   }
 }
 
 /****************************************/

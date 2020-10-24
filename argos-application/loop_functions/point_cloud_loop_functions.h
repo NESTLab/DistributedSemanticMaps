@@ -6,6 +6,7 @@
 #include <utility>
 #include <unordered_map>
 
+#include <swarmmesh.h>
 /* The controller */
 #include <controllers/collective_perception_controller/collective_perception_controller.h>
 
@@ -15,6 +16,8 @@
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/utility/configuration/tinyxml/tinyxml.h>
 #include <argos3/plugins/simulator/entities/point_cloud_entity.h>
+
+typedef typename swarmmesh::CSwarmMesh<SEventData>::STuple STuple;
 
 using namespace argos;
 
