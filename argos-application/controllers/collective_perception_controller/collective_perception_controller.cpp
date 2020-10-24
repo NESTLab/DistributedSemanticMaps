@@ -315,6 +315,7 @@ void CCollectivePerception::ControlStep()
 {
    ClearVotingDecisions();
    ClearObservations();
+   m_vecHashes.clear();
 
    /* Process incoming messages */
    ProcessInMsgs();
@@ -334,7 +335,7 @@ void CCollectivePerception::ControlStep()
       sEvents.pop();
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
-      m_cMySM.Put(sEvent);
+      m_vecHashes.push_back(m_cMySM.Put(sEvent));
       m_vecObservations.push_back(sEvent);
       LOG << "Put as new observation \n";
    }
@@ -344,6 +345,8 @@ void CCollectivePerception::ControlStep()
 
    /* Process collective data in SwarmMesh*/
    AggregateObservations();
+
+   m_unNumRoutingTuples += m_cMySM.RoutingTuples().size();
 
    /* Tell SwarmMesh to queue messages for routing data */
    m_cMySM.Route();
@@ -527,7 +530,7 @@ void CCollectivePerception::AggregateObservations()
             sEvent.Location.Y << ", " <<  sEvent.Location.Z << ") with "
             << (int) sEvent.Payload.Radius << " observations" << '\n';
             m_unMessageCount++;
-            m_cMySM.Put(sEvent);
+            m_vecHashes.push_back(m_cMySM.Put(sEvent));
 
             /* Avoid consolidating again */
             m_mapQueryTimings[*it].Done = true;
@@ -637,6 +640,8 @@ void CCollectivePerception::ProcessOutMsgs()
    /* Convert stl vector to CByteArray */
    CByteArray cBuffer;
    for (auto elem : vecBuffer) cBuffer << elem;
+
+   m_unBytesSent += cBuffer.Size();
 
    /* Pad buffer with zeros to match fixed packet size */
    while(cBuffer.Size() < m_pcRABA->GetSize()) cBuffer << static_cast<UInt8>(0);

@@ -22,8 +22,12 @@ CPointCloudLoopFunctions::CPointCloudLoopFunctions() : m_unClock(0) {}
 void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     
     std::string strOutputFileName("outputfile.dat");
+    std::string strHistogramFileName("histogramfile.dat");
 
     m_ofOutputFile.open(strOutputFileName, std::ios_base::trunc | std::ios_base::out);
+    m_ofHistogramFile.open(strHistogramFileName, std::ios_base::trunc | std::ios_base::out);
+    m_unStorageCapacity = 0;
+    m_unRoutingCapacity = 0;
 
     CSpace::TMapPerType& cRobots = GetSpace().GetEntitiesByType("foot-bot");
     for (CSpace::TMapPerType::iterator it = cRobots.begin(); it != cRobots.end(); it++) {
@@ -31,8 +35,12 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
         CCollectivePerception* cController = &dynamic_cast<CCollectivePerception&>(cRobot->GetControllableEntity().GetController());
         m_vecControllers.push_back(cController);
         cController->SetNumStoredTuples(0);
+        m_unRoutingCapacity += cController->GetRoutingCapacity();
+        m_unStorageCapacity += cController->GetStorageCapacity();
+        cController->ResetBytesSent();
         m_vecRobots.push_back(cRobot);
     }
+    m_ofHistogramFile << cRobots.size() << '\n';
     CSpace::TMapPerType& cPointClouds = GetSpace().GetEntitiesByType("point_cloud");
     for (CSpace::TMapPerType::iterator it = cPointClouds.begin(); it != cPointClouds.end(); it++) {
         CPointCloudEntity& cPointCloud = *any_cast<CPointCloudEntity*>(it->second);
@@ -93,33 +101,48 @@ void CPointCloudLoopFunctions::PreStep() {
 void CPointCloudLoopFunctions::PostStep() {
     UInt16 unTotalMessages = 0;
     m_ofOutputFile << m_unClock << ' ' << m_unNumRobots << '\n';
+    m_ofHistogramFile << m_unClock << '\n';
+
+    
     UInt32 unTotalTuples = 0;
+    UInt32 unTotalBytesSent = 0;
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
         unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
+
+        unTotalBytesSent += m_vecControllers[i]->GetBytesSent();
+        m_vecControllers[i]->ResetBytesSent();
+
         std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
         std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
+
         m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << vecVotingDecisions.size() << '\n';
+        m_ofHistogramFile << m_vecControllers[i]->GetNodeID();
 
         for (int i = 0; i < vecVotingDecisions.size(); i++) {
             SEventData sVotingDecision = vecVotingDecisions[i];
             CCollectivePerception::STimingInfo sTimingInfo = vecTimingInfo[i];
             std::string strActualCategory = m_mapActualCategories[sVotingDecision.Location];
             m_mapVotedCategories[sVotingDecision.Location] = sVotingDecision.Payload.Category;
+
             m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
                 strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
                 sTimingInfo.LastUpdate - sTimingInfo.Start << ' ' <<
                 sVotingDecision.Location.X << ' ' << sVotingDecision.Location.Y << 
                 ' ' << sVotingDecision.Location.Z << '\n';
         }
-
+        std::vector<uint16_t> vecHashes = m_vecControllers[i]->GetHashes();
+        for (auto hash : vecHashes) {
+            m_ofHistogramFile << ' ' << hash;
+        }
+        m_ofHistogramFile << '\n';
         // m_vecControllers[i]->ClearVotingDecisions(); // cleared in controller, using it in qtuser loop fcts
         m_vecControllers[i]->ClearTimingInfo();
         m_vecControllers[i]->SetMessageCount(0);
         m_vecControllers[i]->SetNumStoredTuples(0);
     }
-    m_ofOutputFile << unTotalTuples << '\n'; 
-    
+    float fLoad = unTotalTuples / static_cast<float>(m_unStorageCapacity);
+    m_ofOutputFile << fLoad << ' ' << unTotalBytesSent << '\n'; 
 }
 
 void CPointCloudLoopFunctions::PostExperiment() {

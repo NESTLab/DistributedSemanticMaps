@@ -425,6 +425,21 @@ public:
 
    inline UInt32 GetNumStoredTuples() { return m_unNumStoredTuples; }
 
+   inline uint16_t GetStorageCapacity() { return m_cMySM.GetStorageCapacity(); } 
+
+   inline uint16_t GetRoutingCapacity() { return m_cMySM.GetRoutingCapacity(); }
+
+   inline void SetNumRoutingTuples(uint32_t un_count) { m_unNumRoutingTuples = un_count; }
+
+   inline UInt32 GetNumRoutingTuples() { return m_unNumRoutingTuples; }
+   
+   inline void ResetBytesSent() { m_unBytesSent = 0; }
+
+   inline UInt32 GetBytesSent() { return m_unBytesSent; }
+
+   const std::vector<uint16_t>& GetHashes() { return m_vecHashes; }
+   
+
 private:
 
    /* The robot numeric id */
@@ -437,6 +452,10 @@ private:
    UInt16 m_unMessageCount;
 
    UInt32 m_unNumStoredTuples;
+
+   UInt32 m_unNumRoutingTuples;
+
+   UInt32 m_unBytesSent;
 
    /* Pointer to random number generator */
    CRandom::CRNG* m_pcRNG;
@@ -459,6 +478,8 @@ private:
 
    /* Vector of timing info for all voting events */
    std::vector<STimingInfo> m_vecTimingInfo;
+
+   std::vector<uint16_t> m_vecHashes;
 
    /*****************************************************/
 
