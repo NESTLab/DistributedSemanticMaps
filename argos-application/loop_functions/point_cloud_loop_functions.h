@@ -53,7 +53,11 @@ private:
    /* Map to store the category voted on for the point cloud */
    std::unordered_map<SLocation, std::string, SLocation> m_mapVotedCategories;
 
+   uint16_t m_unStorageCapacity;
+   uint16_t m_unRoutingCapacity;
+
    std::ofstream m_ofOutputFile;
+   std::ofstream m_ofHistogramFile;
    UInt16 m_unClock;
    UInt32 m_unNumRobots;
 };

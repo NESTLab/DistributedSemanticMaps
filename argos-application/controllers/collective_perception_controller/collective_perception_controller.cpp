@@ -146,10 +146,7 @@ swarmmesh::SKey CHashEventDataType::operator()(SEventData& s_value) {
    else if(strCategory  ==  "bag") {unHash = 1 + 13 * BUCKET_SIZE;}
    else if(strCategory  ==  "box") {unHash = 1 + 14 * BUCKET_SIZE;}
    /* Consolidated observation */
-   else if (strCategory == "collective_label") {
-      LOG << "HASHING COLLECTIVE LABEL" << std::endl;
-      unHash = 1 + 15 * BUCKET_SIZE;
-      }
+   else if (strCategory == "collective_label") {unHash = 1 + 15 * BUCKET_SIZE;}
    else  unHash = 0;
 
    /* Unique tuple identifier based on robot id and 
@@ -209,6 +206,7 @@ void CLocationFilter::Init(const std::unordered_map<std::string, std::any>& map_
 bool CLocationFilter::operator()(const swarmmesh::CSwarmMesh<SEventData>::STuple& s_tuple) {
    CVector3 cEventCoord = CVector3(m_sEventLocation.X, m_sEventLocation.Y, m_sEventLocation.Z);
    CVector3 cTupleCoord = CVector3(s_tuple.Value.Location.X, s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
+
    return Distance(cEventCoord, cTupleCoord) <= m_fRadius;
 }
 
@@ -299,6 +297,7 @@ void CCollectivePerception::Init(TConfigurationNode& t_node)
 
    m_pcCamera = GetSensor <CCI_CameraSensor>("cameras");
 
+
    m_pcRNG = CRandom::CreateRNG("argos");
 
    /* Parse the configuration file */
@@ -383,7 +382,7 @@ void CCollectivePerception::ControlStep()
       sEvents.pop();
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
-      m_cMySM.Put(sEvent);
+      m_vecHashes.push_back((m_cMySM.Put(sEvent)).Hash);
       m_vecObservations.push_back(sEvent);
       // LOG << "Put as new observation \n";
    }
@@ -393,6 +392,8 @@ void CCollectivePerception::ControlStep()
 
    /* Process collective data in SwarmMesh*/
    AggregateObservations();
+
+   m_unNumRoutingTuples += m_cMySM.RoutingTuples().size();
 
    /* Tell SwarmMesh to queue messages for routing data */
    m_cMySM.Route();
@@ -544,6 +545,7 @@ void CCollectivePerception::AggregateObservations()
       /* If query results available */
       if(mapResults.count(*it) != 0)
       {
+
          /* If received new results to query */
          if (m_mapQueryTimings[*it].NumReplies != mapResults[*it].size()) {
             m_mapQueryTimings[*it].NumReplies = mapResults[*it].size();
@@ -575,7 +577,9 @@ void CCollectivePerception::AggregateObservations()
 
                /* Variable only for logging */
                m_unMessageCount++;
-               uint32_t unTupleId = (m_cMySM.Put(sEvent)).Identifier;
+	            swarmmesh::SKey sKey = m_cMySM.Put(sEvent);
+	            uint32_t unTupleId = sKey.Identifier;
+	            m_vecHashes.push_back(sKey.Hash);
 
                /* Delete the tuples at the location, 
                   except consolidated label*/
@@ -592,7 +596,9 @@ void CCollectivePerception::AggregateObservations()
 
             /* Avoid trying to consolidate again for this query */
             m_mapQueryTimings[*it].Done = true;
+
          }
+         
       }
 
    }
@@ -639,6 +645,7 @@ SEventData CCollectivePerception::ConsolidateObservations(
    sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated);
    /* Location */
    sEvent.Location = s_loc;
+   LOG << sEvent.Type << " " << unTopIndex << std::endl;
    return sEvent;
 }
 
@@ -695,6 +702,8 @@ void CCollectivePerception::ProcessOutMsgs()
    /* Convert stl vector to CByteArray */
    CByteArray cBuffer;
    for (auto elem : vecBuffer) cBuffer << elem;
+
+   m_unBytesSent += cBuffer.Size();
 
    /* Pad buffer with zeros to match fixed packet size */
    while(cBuffer.Size() < m_pcRABA->GetSize()) cBuffer << static_cast<UInt8>(0);
