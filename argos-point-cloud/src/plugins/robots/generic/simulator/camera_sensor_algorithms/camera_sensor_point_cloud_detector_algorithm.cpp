@@ -9,8 +9,8 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/utility/math/matrix/squarematrix.h>
 #include <argos3/core/utility/math/matrix/transformationmatrix3.h>
-#include "../../simulator/media/point_cloud_medium.h"
-#include "../../simulator/entities/point_cloud_entity.h"
+#include <argos3/plugins/simulator/media/point_cloud_medium.h>
+#include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
 namespace argos {
 

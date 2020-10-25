@@ -1,3 +1,5 @@
 add_subdirectory(simulator)
 add_subdirectory(robots)
-add_subdirectory(visualization)
+if(ARGOS_COMPILE_QTOPENGL)
+  add_subdirectory(visualization)
+endif(ARGOS_COMPILE_QTOPENGL)

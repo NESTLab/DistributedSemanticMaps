@@ -55,15 +55,17 @@ if(ARGOS_COMPILE_QTOPENGL)
    ${ARGOS_QTOPENGL_LIBRARIES})
 endif(ARGOS_COMPILE_QTOPENGL)
 
-add_library(point_cloud_qtuser_functions MODULE 
-  point_cloud_qtuser_functions.h
-  point_cloud_qtuser_functions.cpp)
+if(ARGOS_COMPILE_QTOPENGL)
+  add_library(point_cloud_qtuser_functions MODULE 
+  	point_cloud_qtuser_functions.h
+  	point_cloud_qtuser_functions.cpp)
 
-target_link_libraries(point_cloud_qtuser_functions
-  argos3core_simulator
-  argos3plugin_simulator_entities
-  argos3plugin_simulator_footbot
-  argos3plugin_simulator_pointcloud_simulator
-  argos3plugin_simulator_qtopengl
-  argos3plugin_simulator_qtopengl_pointcloud
-  ${ARGOS_QTOPENGL_LIBRARIES})
+  target_link_libraries(point_cloud_qtuser_functions
+  	argos3core_simulator
+  	argos3plugin_simulator_entities
+  	argos3plugin_simulator_footbot
+  	argos3plugin_simulator_pointcloud_simulator
+	argos3plugin_simulator_qtopengl
+	argos3plugin_simulator_qtopengl_pointcloud
+	${ARGOS_QTOPENGL_LIBRARIES})
+endif(ARGOS_COMPILE_QTOPENGL)

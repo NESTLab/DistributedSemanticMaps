@@ -13,7 +13,7 @@ do
    for MIN_VOTES in 3 4 5 6
    do
       # Submit job
-      sbatch automate.sh $PARAM1 $PARAM2 $RUN
+      sbatch ../bash-scripts/automate.sh ${NB_ROBOTS} ${MIN_VOTES} ${RUN}
       # Sleep for 1 second to avoid overloading the machine
       sleep 1
    done 

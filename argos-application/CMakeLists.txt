@@ -1,5 +1,5 @@
 project(collective_perception)
-cmake_minimum_required(VERSION 3.17.3)
+cmake_minimum_required(VERSION 3.16.0)
 
 # Set the path where CMake will find additional scripts
 set(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
@@ -38,6 +38,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SWARMMESH_INCLUDE_DIR "/usr/local/include/SwarmMeshLibrary/")
 set(SWARMMESH_LIBRARY_DIR "/usr/local/lib/SwarmMeshLibrary/")
+
+#set(SWARMMESH_INCLUDE_DIR "~/swarmmeshbundle/include/SwarmMeshLibrary/") #"/usr/local/include/SwarmMeshLibrary/")
+#set(SWARMMESH_LIBRARY_DIR "~/swarmmeshbundle/lib/SwarmMeshLibrary/")
 
 # Set ARGoS include dir
 include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} ${SWARMMESH_INCLUDE_DIR})
