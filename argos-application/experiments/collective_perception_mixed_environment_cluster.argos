@@ -1,0 +1,306 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="0" />
+    <experiment length="0"
+                ticks_per_second="10"
+                random_seed="SEED" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <collective_perception_controller id="knc"
+                                  library="BASELOC/build/controllers/collective_perception_controller/libcollective_perception_controller.so">
+      <actuators>
+        <differential_steering implementation="default" />
+        <range_and_bearing implementation="default" check_occlusions="false"/>
+      </actuators>
+      <sensors>
+        <footbot_proximity implementation="default" show_rays="false" /> 
+        <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
+        <positioning implementation="default"/>
+
+        <cameras implementation="default"> 
+          <camera id="fixed_camera" range="0.025:1" resolution="1280,720"
+                  anchor="origin" position="0.08,0,0.1" orientation="-90,80,0"
+                  focal_length="884,884" principal_point="320,180">
+            <point_cloud_detector medium="point_clouds" show_rays="true"
+                                  distribution_file="../data/distributions/BGA-DGCNN.txt"
+                                  confusion_matrix_file="../data/confusion_matrix/BGA-DGCNN.txt"/>
+          </camera>
+        </cameras>
+
+      </sensors>
+      <params alpha="7.5" delta="0.1" velocity="5" storage="STORAGE" routing="ROUTING" bucket="HASHING"
+              min_votes="MIN_VOTES"/>
+    </collective_perception_controller>
+
+  </controllers>
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+  <loop_functions library="BASELOC/build/loop_functions/libpoint_cloud_loop_functions.so"
+                  label="point_cloud_loop_functions">
+  </loop_functions>
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="16, 16, 2" center="0,0,1">
+
+    <box id="wall_north" size="8,0.1,1" movable="false">
+      <body position="0,4,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="8,0.1,1" movable="false">
+      <body position="0,-4,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,8,1" movable="false">
+      <body position="4,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,8,1" movable="false">
+      <body position="-4,0,0" orientation="0,0,0" />
+    </box>
+    
+    <point_cloud id="610041" size=" 0.5,0.5,0.5" category="bed" color="195,224,75,1"
+    medium="point_clouds">
+      <body position="-3.50479,-0.426385,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1547362" size=" 0.398563,0.5,0.5" category="door" color="241,196,116,1"
+    medium="point_clouds">
+      <body position="-0.455754,-1.9828,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1348911" size=" 0.0657778,0.5,0.5" category="door" color="36,242,138,1"
+    medium="point_clouds">
+      <body position="-1.18264,-0.520413,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1513254" size=" 0.427078,0.419254,0.4" category="cabinet" color="139,41,45,1"
+    medium="point_clouds">
+      <body position="0.180176,1.01383,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1536518" size=" 0.5,0.497436,0.215725" category="shelf" color="250,241,183,1"
+    medium="point_clouds">
+      <body position="0.382683,-0.406525,0" orientation="90,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="695300" size=" 0.7,0.604358,0.162082" category="display" color="208,23,69,1"
+    medium="point_clouds">
+      <body position="-2.49719,-2.87847,0" orientation="90,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="554027" size=" 0.43821,0.147733,0.5" category="bin" color="182,133,137,1"
+    medium="point_clouds">
+      <body position="-3.19204,0.724003,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="656080" size=" 0.0606639,0.7,0.324359" category="door" color="108,71,13,1"
+    medium="point_clouds">
+      <body position="3.4822,-3.2,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="651965" size=" 0.186066,0.298653,0.426326" category="desk" color="112,144,15,1"
+    medium="point_clouds">
+      <body position="2.49659,-2.00526,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="38764" size=" 0.336296,0.5,0.0932574" category="pillow" color="52,237,197,1"
+    medium="point_clouds">
+      <body position="3.37766,0.324942,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="441429" size=" 0.7,0.0534611,0.163439" category="desk" color="106,59,108,1"
+    medium="point_clouds">
+      <body position="1.8108,1.79907,0" orientation="270,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1513539" size=" 0.409387,0.320255,0.311496" category="chair" color="206,81,234,1"
+    medium="point_clouds">
+      <body position="-1.15308,0.893912,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="91967" size=" 0.645232,0.348121,0.181485" category="bed" color="210,95,11,1"
+    medium="point_clouds">
+      <body position="1.94707,-2.96213,0" orientation="90,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="264980" size=" 0.111111,0.5,0.30584" category="sofa" color="73,40,150,1"
+    medium="point_clouds">
+      <body position="3.55196,2.5,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="481308" size=" 0.0666127,0.5,0.423078" category="sofa" color="154,107,160,1"
+    medium="point_clouds">
+      <body position="3.45682,1.7,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="676132" size=" 0.143888,0.584851,0.225624" category="bin" color="163,100,250,1"
+    medium="point_clouds">
+      <body position="3.36893,-1.97938,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="70514" size=" 0.593999,0.261599,0.0824294" category="bed" color="112,144,78,1"
+    medium="point_clouds">
+      <body position="3.05371,-1.44768,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="615167" size=" 0.340159,0.211039,0.105815" category="door" color="4,83,132,1"
+    medium="point_clouds">
+      <body position="1.96925,2.82556,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1085051" size=" 0.0574152,0.260125,0.428351" category="chair" color="233,201,250,1"
+    medium="point_clouds">
+      <body position="-0.41609,0.146803,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1024537" size=" 0.300206,0.140329,0.28104" category="shelf" color="51,152,136,1"
+    medium="point_clouds">
+      <body position="-0.313904,-0.496615,0" orientation="270,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1561891" size=" 0.32514,0.0824308,0.146131" category="sofa" color="48,5,152,1"
+    medium="point_clouds">
+      <body position="-1.356,0.573247,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1044328" size=" 0.327302,0.151805,0.109306" category="chair" color="233,44,11,1"
+    medium="point_clouds">
+      <body position="1.01854,-0.544919,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="448180" size=" 0.363611,0.144441,0.0999219" category="door" color="74,13,143,1"
+    medium="point_clouds">
+      <body position="2.01031,-0.240269,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="103876" size=" 0.0709374,0.32454,0.223163" category="bin" color="205,52,250,1"
+    medium="point_clouds">
+      <body position="-3.54568,0.111984,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="649700" size=" 0.330567,0.12822,0.087683" category="door" color="110,149,205,1"
+    medium="point_clouds">
+      <body position="-0.591821,2.69352,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="702077" size=" 0.215966,0.0899358,0.175797" category="bin" color="119,184,22,1"
+    medium="point_clouds">
+      <body position="-1.80488,-2.19567,0" orientation="90,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="104056" size=" 0.073118,0.278431,0.17328" category="table" color="215,141,14,1"
+    medium="point_clouds">
+      <body position="-2.89822,0.0843564,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="109167" size=" 0.116678,0.162858,0.219219" category="sink" color="95,212,147,1"
+    medium="point_clouds">
+      <body position="-3.2222,-1.05347,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="273247" size=" 0.401204,0.186965,0.0533589" category="bin" color="101,141,78,1"
+    medium="point_clouds">
+      <body position="3.21908,-0.586486,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1454257" size=" 0.287718,0.166549,0.0761506" category="bin" color="218,56,84,1"
+    medium="point_clouds">
+      <body position="-0.56038,1.55001,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="698461" size=" 0.56797,0.0811377,0.0839248" category="shelf" color="40,145,247,1"
+    medium="point_clouds">
+      <body position="0.825539,1.87089,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="82326" size=" 0.0775173,0.244207,0.116332" category="sofa" color="112,218,250,1"
+    medium="point_clouds">
+      <body position="-2.67842,2.95465,0" orientation="270,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1533749" size=" 0.310986,0.216442,0.0829536" category="table" color="32,207,20,1"
+    medium="point_clouds">
+      <body position="1.33488,-0.955659,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1473567" size=" 0.0722595,0.0700367,0.269276" category="display" color="169,79,4,1"
+    medium="point_clouds">
+      <body position="-0.940365,0.302783,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="522349" size=" 0.0844245,0.118447,0.162781" category="door" color="217,230,40,1"
+    medium="point_clouds">
+      <body position="3.53903,-0.528874,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="273976" size=" 0.151052,0.0615592,0.1111" category="door" color="173,100,189,1"
+    medium="point_clouds">
+      <body position="1.39947,-2.54481,0" orientation="90,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="154470" size=" 0.267258,0.0922542,0.0822022" category="desk" color="6,249,146,1"
+    medium="point_clouds">
+      <body position="2.48847,-0.701572,0" orientation="90,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="500286" size=" 0.0682909,0.195923,0.0944855" category="shelf" color="172,231,18,1"
+    medium="point_clouds">
+      <body position="3.06956,1.26206,0" orientation="180,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="117036" size=" 0.05603,0.095409,0.147775" category="desk" color="132,140,147,1"
+    medium="point_clouds">
+      <body position="-3.1615,1.77446,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <point_cloud id="1717307" size=" 0.0887464,0.101264,0.0558903" category="bed" color="173,196,236,1"
+    medium="point_clouds">
+      <body position="0.4886,0.548141,0" orientation="0,0,0"/>
+    </point_cloud>
+
+    <distribute>
+      <position method="uniform" min="-4,-4,0" max="4,4,0" />
+      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
+      <entity quantity="NB_ROBOTS" max_trials="100" base_num="1">
+        <foot-bot id="K" rab_data_size="1000" rab_range="2">
+          <controller config="knc" />
+        </foot-bot>
+      </entity>
+    </distribute>
+
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab" check_occlusions="false"/>
+    <led id="leds" />
+    <point_cloud id="point_clouds" index="grid" grid_size="20,20,20" />
+  </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+  </visualization>
+
+</argos-configuration>

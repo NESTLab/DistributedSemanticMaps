@@ -20,16 +20,48 @@ CPointCloudLoopFunctions::CPointCloudLoopFunctions() : m_unClock(0) {}
 *  the object is elongated enough. */
 
 void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
-    
-    std::string strOutputFileName("outputfile.dat");
-    std::string strHistogramFileName("histogramfile.dat");
+
+    UInt16 unMinVotes, unSeed, unStorageMemory, unRoutingMemory, unHashing; 
+
+    /* Parse the controller parameters */
+    TConfigurationNode& tConfRoot = GetSimulator().GetConfigurationRoot();
+    TConfigurationNode& tControllers = GetNode(tConfRoot, "controllers");
+    TConfigurationNode& tController = GetNode(tControllers, "collective_perception_controller");
+    TConfigurationNode& tParams = GetNode(tController, "params");
+    GetNodeAttribute(tParams, "min_votes", unMinVotes);
+    GetNodeAttribute(tParams, "storage", unStorageMemory);
+    GetNodeAttribute(tParams, "routing", unRoutingMemory);
+    GetNodeAttribute(tParams, "bucket", unHashing);
+
+    /* Get random seed */
+    unSeed = CSimulator::GetInstance().GetRandomSeed();
+
+    /* Get robot entities and their number */
+    CSpace::TMapPerType& cRobots = GetSpace().GetEntitiesByType("foot-bot");
+    m_unNumRobots = cRobots.size();
+
+    std::string strOutputFileName = "outputfile_" 
+                                  + ToString(unMinVotes) + "_"
+                                  + ToString(m_unNumRobots) + "_"
+                                  + ToString(unSeed) + "_"
+                                  + ToString(unStorageMemory) + "_"
+                                  + ToString(unRoutingMemory) + "_"
+                                  + ToString(unHashing) + ".dat";
+
+    std::string strHistogramFileName = "histogramfile_" 
+                                    + ToString(unMinVotes) + "_"
+                                    + ToString(m_unNumRobots) + "_"
+                                    + ToString(unSeed) + "_"
+                                    + ToString(unStorageMemory) + "_"
+                                    + ToString(unRoutingMemory) + "_"
+                                    + ToString(unHashing) + ".dat";
 
     m_ofOutputFile.open(strOutputFileName, std::ios_base::trunc | std::ios_base::out);
     m_ofHistogramFile.open(strHistogramFileName, std::ios_base::trunc | std::ios_base::out);
     m_unStorageCapacity = 0;
     m_unRoutingCapacity = 0;
 
-    CSpace::TMapPerType& cRobots = GetSpace().GetEntitiesByType("foot-bot");
+
     for (CSpace::TMapPerType::iterator it = cRobots.begin(); it != cRobots.end(); it++) {
         CFootBotEntity* cRobot = any_cast<CFootBotEntity*>(it->second);
         CCollectivePerception* cController = &dynamic_cast<CCollectivePerception&>(cRobot->GetControllableEntity().GetController());
@@ -48,7 +80,6 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
         SLocation sLocation = SLocation(cPos.GetX(), cPos.GetY(), cPos.GetZ());
         m_mapActualCategories[sLocation] = cPointCloud.GetCategory();
     }
-    m_unNumRobots = cRobots.size();
     m_ofOutputFile << cPointClouds.size() << '\n';
 }
 
