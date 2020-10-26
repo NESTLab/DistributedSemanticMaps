@@ -78,10 +78,12 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
    while(!tStoringQueue.empty())
    {
       sTuple = tStoringQueue.back();
-      strText = "[" + ToString(sTuple.Key.Hash) + ", " 
-                 + ToString(sTuple.Value.Type) + ", (" 
-                 + ToString(sTuple.Value.Location.X) + ","
-                 + ToString(sTuple.Value.Location.Y) + ")"
+      strText = "[" + ToString(sTuple.Key.Identifier) + "|"
+                 + ToString(sTuple.Key.Hash) + ", " 
+                 + ToString(sTuple.Value.Type) 
+                 + ", (" 
+                 + ToString(sTuple.Value.Location.X).substr(0,3) + ","
+                 + ToString(sTuple.Value.Location.Y).substr(0,3) + ")"
                  + "]";
       cColor = COLOR_TABLE[(sTuple.Key.Hash - 1)/BUCKET_SIZE];
       DrawText(cPos,
@@ -102,8 +104,9 @@ void CPointCloudQTUserFunctions::Draw(CFootBotEntity& c_entity) {
    while(!tRoutingQueue.empty())
    {
       sTuple = tRoutingQueue.back();
-      strText = "[" + ToString(sTuple.Key.Hash) + ", " 
-                 + ToString(sTuple.Value.Type) + "]";
+      strText = "[" + ToString(sTuple.Key.Identifier) + "|"
+                    + ToString(sTuple.Key.Hash) + ", " 
+                    + ToString(sTuple.Value.Type) + "]";
       cColor = COLOR_TABLE[(sTuple.Key.Hash - 1)/BUCKET_SIZE];
       DrawText(cPos,
             strText.c_str(),

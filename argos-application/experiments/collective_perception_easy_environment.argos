@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="100"
+    <experiment length="0"
                 ticks_per_second="10"
                 random_seed="1" />
   </framework>
@@ -39,7 +39,7 @@
         </cameras>
 
       </sensors>
-      <params alpha="7.5" delta="0.1" velocity="5" storage="10" routing="5" bucket="5"
+      <params alpha="7.5" delta="0.1" velocity="5" storage="10" routing="10" bucket="5"
               min_votes="5"/>
     </collective_perception_controller>
 

@@ -382,8 +382,9 @@ void CCollectivePerception::ControlStep()
       sEvents.pop();
       ++m_unTupleCount;
       /* Perform a put operation in SwarmMesh */
-      m_cMySM.Put(sEvent);
+      swarmmesh::SKey sKey = m_cMySM.Put(sEvent);
       m_vecObservations.push_back(sEvent);
+      LOG << m_unRobotId << ": " << sKey.Identifier << " " << sKey.Hash << std::endl;
       // LOG << "Put as new observation \n";
    }
 
@@ -520,8 +521,8 @@ void CCollectivePerception::RequestObservations()
          m_mapQueries[unQueryId] = mapFilterParams;
          m_mapQueryTimings[unQueryId] = STimingInfo(m_unClock, m_unClock);
 
-         LOG << m_strId << " made request for (" <<  sLocation.X << ", " 
-         << sLocation.Y << ") \n";
+         // LOG << m_strId << " made request for (" <<  sLocation.X << ", " 
+         // << sLocation.Y << ") \n";
 
          m_unTimeLastQuery = m_unClock;
          return;
@@ -552,8 +553,8 @@ void CCollectivePerception::AggregateObservations()
             m_mapQueryTimings[*it].NumReplies = mapResults[*it].size();
             m_mapQueryTimings[*it].LastUpdate = m_unClock;
             SLocation sLoc = std::any_cast<SLocation>(m_mapQueries[*it].at("location"));
-            LOG << "Got result for query for (" << sLoc.X << ", " <<
-            sLoc.Y << ") \n"; 
+            // LOG << "Got result for query for (" << sLoc.X << ", " <<
+            // sLoc.Y << ") \n"; 
          }
          /* No more expected results? */
          else if(m_unClock - m_mapQueryTimings[*it].LastUpdate > UPDATE_TIMEOUT
@@ -571,15 +572,16 @@ void CCollectivePerception::AggregateObservations()
                m_vecVotingDecisions.push_back(sEvent);
                m_vecTimingInfo.push_back(m_mapQueryTimings[*it]);
 
-               LOG << m_unRobotId << " writing " << sEvent.Type << " " << sEvent.Payload.Category
-               << " for (" << sEvent.Location.X << ", " <<
-               sEvent.Location.Y << ") with "
-               << (int) sEvent.Payload.Radius << " observations" << '\n';
+               // LOG << m_unRobotId << " writing " << sEvent.Type << " " << sEvent.Payload.Category
+               // << " for (" << sEvent.Location.X << ", " <<
+               // sEvent.Location.Y << ") with "
+               // << (int) sEvent.Payload.Radius << " observations" << '\n';
 
                /* Variable only for logging */
                m_unMessageCount++;
 	            swarmmesh::SKey sKey = m_cMySM.Put(sEvent);
 	            uint32_t unTupleId = sKey.Identifier;
+               LOG << m_unRobotId << ": " << unTupleId << std::endl;
 
                /* Delete the tuples at the location, 
                   except consolidated label*/
@@ -589,8 +591,8 @@ void CCollectivePerception::AggregateObservations()
                mapFilterParams["except"] = (uint32_t) unTupleId;
                m_cMySM.Erase((uint8_t) 2, mapFilterParams);
                
-               LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
-               sLoc.Y  << " except tuple " << unTupleId <<'\n';
+               // LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
+               // sLoc.Y  << " except tuple " << unTupleId <<'\n';
 
             }
 
@@ -645,7 +647,6 @@ SEventData CCollectivePerception::ConsolidateObservations(
    sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated);
    /* Location */
    sEvent.Location = s_loc;
-   LOG << sEvent.Type << " " << unTopIndex << std::endl;
    return sEvent;
 }
 

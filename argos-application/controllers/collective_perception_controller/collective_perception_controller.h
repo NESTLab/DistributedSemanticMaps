@@ -29,7 +29,7 @@ const uint16_t BUCKET_SIZE = 5; // for hashing
 
 const uint16_t RECORDING_TIMEOUT = 20; // time out on recording observations
 const uint16_t QUERY_TIMEOUT = 50; // time out on asking for votes
-const uint16_t UPDATE_TIMEOUT = 10; // time out on waiting for new replies (maybe a bit low)
+const uint16_t UPDATE_TIMEOUT = 20; // time out on waiting for new replies (maybe a bit low)
 
 const uint16_t MIN_LOCAL_OBSERVATIONS = 2; // trigger for asking for votes
 const uint16_t MIN_NUM_VOTES = 5; // trigger for writing consolidated label
