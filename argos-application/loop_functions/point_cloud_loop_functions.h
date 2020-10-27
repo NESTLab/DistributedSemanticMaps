@@ -18,7 +18,7 @@
 #include <argos3/plugins/simulator/entities/point_cloud_entity.h>
 
 typedef typename swarmmesh::CSwarmMesh<SEventData>::STuple STuple;
-const UInt16 NUM_POINT_CLOUDS = 42;
+const UInt16 NUM_POINT_CLOUDS = 40;
 const UInt16 MAX_TIME = 10000;
 
 using namespace argos;

@@ -524,7 +524,7 @@ private:
    /* Aggregates results of queries on SwarmMesh */
    void AggregateObservations();
 
-   void StoreTuples();
+   void LogTuples();
 
    SEventData ConsolidateObservations(const std::vector<STuple>& vec_tuples, const SLocation& s_loc);
 
