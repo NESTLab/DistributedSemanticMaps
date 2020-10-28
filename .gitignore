@@ -4,4 +4,4 @@ argos-point-cloud/build/
 .vscode
 *.ply
 argos-application/*.dat
-
+argos-application/data

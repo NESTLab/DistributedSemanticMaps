@@ -134,27 +134,29 @@ void CPointCloudLoopFunctions::PostStep() {
     m_ofOutputFile << m_unClock << ' ' << m_unNumRobots << '\n';
     m_ofHistogramFile << m_unClock << '\n';
 
-    
+    UInt32 unTotalConsolidations = 0;
     UInt32 unTotalTuples = 0;
-    UInt32 unTotalBytesSent = 0;
+
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
         unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
 
-        unTotalBytesSent += m_vecControllers[i]->GetBytesSent();
-        m_vecControllers[i]->ResetBytesSent();
 
         std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
         std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
 
-        m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << vecVotingDecisions.size() << '\n';
+        m_ofOutputFile << m_vecControllers[i]->GetId() << ' ' << m_vecControllers[i]->GetBytesSent() << ' ' << 
+            vecVotingDecisions.size() << '\n';
+        m_vecControllers[i]->ResetBytesSent();
         m_ofHistogramFile << m_vecControllers[i]->GetNodeID() << ' ';
 
         for (int i = 0; i < vecVotingDecisions.size(); i++) {
             SEventData sVotingDecision = vecVotingDecisions[i];
             CCollectivePerception::STimingInfo sTimingInfo = vecTimingInfo[i];
             std::string strActualCategory = m_mapActualCategories[sVotingDecision.Location];
-            m_mapVotedCategories[sVotingDecision.Location] = sVotingDecision.Payload.Category;
+            if (m_mapVotedCategories.find(sVotingDecision.Location) == m_mapVotedCategories.end()) {
+                m_mapVotedCategories[sVotingDecision.Location] = sVotingDecision.Payload.Category;
+            }
 
             m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
                 strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
@@ -166,6 +168,9 @@ void CPointCloudLoopFunctions::PostStep() {
         m_ofHistogramFile << vecTuples.size() << '\n';
         for (STuple sTuple : vecTuples) {
             m_ofHistogramFile << sTuple.Key.Identifier << ' ' << sTuple.Key.Hash << '\n';
+            if (sTuple.Value.Type == "collective_label") {
+                unTotalConsolidations++;
+            }
         }
         // m_vecControllers[i]->ClearVotingDecisions(); // cleared in controller, using it in qtuser loop fcts
         m_vecControllers[i]->ClearTimingInfo();
@@ -173,7 +178,8 @@ void CPointCloudLoopFunctions::PostStep() {
         m_vecControllers[i]->SetNumStoredTuples(0);
     }
     float fLoad = unTotalTuples / static_cast<float>(m_unStorageCapacity);
-    m_ofOutputFile << fLoad << ' ' << unTotalBytesSent << '\n'; 
+    m_ofOutputFile << fLoad << '\n'; 
+    std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << ' ' << m_mapActualCategories.size() << '\n';
 }
 
 /****************************************/
