@@ -112,7 +112,9 @@ namespace argos {
                   m_cAlgorithm.m_mapIncorrectProbDistribution[strCategory](m_cAlgorithm.m_randEngine));
             }
 
-            m_cAlgorithm.AddReading(strCategory, cCenter, m_arrBoundingBoxCorners);
+            CQuaternion cOrientation = c_pointCloud.GetEmbodiedEntity().GetOriginAnchor().Orientation;
+
+            m_cAlgorithm.AddReading(strCategory, cCenter, m_arrBoundingBoxCorners, cOrientation);
             return true;
          }
 
@@ -147,8 +149,9 @@ namespace argos {
 
       void AddReading(const std::string& str_category,
                       const CVector3& c_center,
-                      const std::array<CVector3, 8>& arr_corners) {
-         m_vecReadings.emplace_back(str_category, c_center, arr_corners);
+                      const std::array<CVector3, 8>& arr_corners,
+                      const CQuaternion c_orientation) {
+         m_vecReadings.emplace_back(str_category, c_center, arr_corners, c_orientation);
       }
 
       /**

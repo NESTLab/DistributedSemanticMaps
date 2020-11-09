@@ -42,6 +42,9 @@ namespace argos {
          /* Coordinates of the corners of the bounding box 
           * in world coordinates */
          std::array<CVector3, 8> Corners;
+
+         /* Orientation of the bounding box */
+         CQuaternion Orientation;
          /**
           * Constructor
           * @param str_category Point cloud category
@@ -50,10 +53,12 @@ namespace argos {
           */
          SReading(const std::string& str_category,
                   const CVector3& c_center,
-                  const std::array<CVector3, 8>& c_corners) :
+                  const std::array<CVector3, 8>& c_corners,
+                  const CQuaternion c_orientation) :
             Category(str_category),
             Center(c_center),
-            Corners(c_corners) {}
+            Corners(c_corners),
+            Orientation(c_orientation) {}
       };
 
    public:

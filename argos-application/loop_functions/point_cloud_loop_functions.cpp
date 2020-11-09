@@ -137,6 +137,8 @@ void CPointCloudLoopFunctions::PostStep() {
     UInt32 unTotalConsolidations = 0;
     UInt32 unTotalTuples = 0;
 
+    std::unordered_set<std::string> setObservedCategories;
+
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
         unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
@@ -167,6 +169,7 @@ void CPointCloudLoopFunctions::PostStep() {
         std::vector<STuple> vecTuples = m_vecControllers[i]->GetTuples();
         m_ofHistogramFile << vecTuples.size() << '\n';
         for (STuple sTuple : vecTuples) {
+            m_setObservedCategories.insert(sTuple.Value.Location);
             m_ofHistogramFile << sTuple.Key.Identifier << ' ' << sTuple.Key.Hash << '\n';
             if (sTuple.Value.Type == "collective_label") {
                 unTotalConsolidations++;
@@ -178,8 +181,8 @@ void CPointCloudLoopFunctions::PostStep() {
         m_vecControllers[i]->SetNumStoredTuples(0);
     }
     float fLoad = unTotalTuples / static_cast<float>(m_unStorageCapacity);
-    m_ofOutputFile << fLoad << '\n'; 
-    std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << ' ' << m_mapActualCategories.size() << '\n';
+    m_ofOutputFile << fLoad << ' ' << m_setObservedCategories.size() << '\n'; 
+    // std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << ' ' << m_mapActualCategories.size() << '\n';
 }
 
 /****************************************/
