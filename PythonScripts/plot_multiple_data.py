@@ -3,7 +3,8 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
+import seaborn
+import pandas as pd
 
 folder = 'runD'
 n_robots = '60'
@@ -36,9 +37,9 @@ def get_data(file_name):
             line = file.readline()
             if not line:
                 break
-            timestep, n_robots = map(int, line.split(' '))
+            timestep, n_robots = map(int, line.split())
             for _ in range(n_robots):
-                line = file.readline().split(' ')
+                line = file.readline().split()
                 n_results = int(line[2])
                 
                 message_size = int(line[1])
@@ -48,7 +49,7 @@ def get_data(file_name):
                     bytes_sent[line[0]].append(message_size)
 
                 for _ in range(n_results):
-                    line = file.readline().split(' ')
+                    line = file.readline().split()
                     voted_category = line[0]
                     actual_category = line[1]
                     num_observations = int(line[2])
@@ -254,39 +255,62 @@ plt.legend()
 
 # ############ Plotting bytes sent vs time ###########
 plt.figure()
+frames = []
 for key in bytes_sent_dict.keys():
     bytes_sent = bytes_sent_dict[key] 
-    data = []
+    temp = []
     for _, value in bytes_sent.items():
-        data.append(value)
+        temp.append(value)
+    temp = np.array(temp)
+
+    temp = temp.transpose()
+    timesteps = temp.shape[0]
+    n_robots = temp.shape[1]
+    time = []
+    data = []
+
+
+    for i in range(timesteps):
+        if i % 10 == 0:
+            for j in range(n_robots):
+                data.append(temp[i][j])
+                time.append(i // 100)
     data = np.array(data)
-    data = data[:, :1000]
+    time = np.array(time)
+    keys = [key] * time.shape[0]
 
-    max_array = np.max(data, axis = 0)
-    min_array = np.min(data, axis = 0)
-    mean_array = np.mean(data, axis = 0)
-    median_array = np.median(data, axis = 0)
-    data = np.vstack([max_array, min_array, mean_array, median_array])
-    new_median_array = []
-    new_min_array = []
-    new_max_array = []
-    new_mean_array = []
-    for i in range(0, median_array.shape[0], 10):
-        new_median_array.append(np.median(data[:, i:i + 10]))
-        new_mean_array.append(np.mean(data[:, i:i + 10]))
-        new_min_array.append(np.min(min_array[i:i + 10]))
-        new_max_array.append(np.max(max_array[i:i + 10]))
+    dataset = pd.DataFrame({'bytes': data, 'timesteps': time, 'votes': keys}, columns=['bytes', 'timesteps', 'votes'])
+    frames.append(dataset)
+dataset = pd.concat(frames)    
+seaborn.boxplot(x = "timesteps", y = "bytes", hue = 'votes', data = dataset, whis = 500.0)
 
-    timesteps = np.arange(len(new_median_array))
-    # plt.scatter(timesteps, new_mean_array, marker = '.', label = key, alpha = 0.8)
-    plt.plot(timesteps, new_median_array, 'o', label = key)
-    for i in range(len(new_max_array)):
-        plt.plot([timesteps[i], timesteps[i]], [new_min_array[i], new_max_array[i]], 'r-')
+    # data = data[:, :1000]
+    
+    # max_array = np.max(data, axis = 0)
+    # min_array = np.min(data, axis = 0)
+    # mean_array = np.mean(data, axis = 0)
+    # median_array = np.median(data, axis = 0)
+    # data = np.vstack([max_array, min_array, mean_array, median_array])
+    # new_median_array = []
+    # new_min_array = []
+    # new_max_array = []
+    # new_mean_array = []
+    # for i in range(0, median_array.shape[0], 10):
+    #     new_median_array.append(np.median(data[:, i:i + 10]))
+    #     new_mean_array.append(np.mean(data[:, i:i + 10]))
+    #     new_min_array.append(np.min(min_array[i:i + 10]))
+    #     new_max_array.append(np.max(max_array[i:i + 10]))
 
-plt.xlabel('Time (sec)')
-plt.ylabel('Bytes sent')
+    # timesteps = np.arange(len(new_median_array))
+    # # plt.scatter(timesteps, new_mean_array, marker = '.', label = key, alpha = 0.8)
+    # plt.plot(timesteps, new_median_array, 'o', label = key)
+    # for i in range(len(new_max_array)):
+    #     plt.plot([timesteps[i], timesteps[i]], [new_min_array[i], new_max_array[i]], 'r-')
+
+# plt.xlabel('Time (sec)')
+# plt.ylabel('Bytes sent')
 # plt.title(n_robots + ' robots for differing min_votes')
-plt.legend()
+# plt.legend()
 
 
 # # ######### Plotting histogram of number of observations #######
