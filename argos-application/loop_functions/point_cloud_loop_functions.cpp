@@ -56,7 +56,7 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                                     + ToString(unRoutingMemory) + "_"
                                     + ToString(unHashing) + ".dat";
 
-    std::string strVcsbppFileName = "vcbppfile_" 
+    std::string strVcsbppFileName = "vcsbppfile_" 
                                   + ToString(unMinVotes) + "_"
                                   + ToString(m_unNumRobots) + "_"
                                   + ToString(unSeed) + "_"
@@ -155,7 +155,6 @@ void CPointCloudLoopFunctions::PostStep() {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
         unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
 
-
         std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
         std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
 
@@ -163,13 +162,11 @@ void CPointCloudLoopFunctions::PostStep() {
             vecVotingDecisions.size() << '\n';
         m_vecControllers[i]->ResetBytesSent();
         m_ofHistogramFile << m_vecControllers[i]->GetNodeID() << ' ';
-        m_ofVcsbppFile << m_vecControllers[i]->GetId() << ' ' << m_vecControllers[i]->GetNodeID()
-        << ' ' << m_vecControllers[i]->GetNumStoredTuples() + m_vecControllers[i]->GetNumRoutingTuples();
 
-        for (auto neighbor : m_vecControllers[i]->GetNeighbors()) {
-            m_ofVcsbppFile << ' ' << neighbor.RId;
-        }
-        m_ofVcsbppFile << '\n';
+        m_ofVcsbppFile << m_vecControllers[i]->GetId() << ' ' << m_vecControllers[i]->GetNodeID()
+        << ' ' << m_vecControllers[i]->GetTuples().size();
+
+        m_ofVcsbppFile << ' ' << m_vecControllers[i]->GetNeighbors().size() << '\n';
 
         for (int i = 0; i < vecVotingDecisions.size(); i++) {
             SEventData sVotingDecision = vecVotingDecisions[i];

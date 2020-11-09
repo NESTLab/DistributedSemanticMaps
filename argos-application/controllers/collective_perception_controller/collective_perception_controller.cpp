@@ -681,6 +681,7 @@ void CCollectivePerception::ProcessInMsgs()
 {
 
    m_cMySM.ResetNeighbors();
+   m_vecNeighbors.clear();
 
    const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
 

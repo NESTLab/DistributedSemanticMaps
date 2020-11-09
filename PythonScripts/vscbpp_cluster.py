@@ -1,6 +1,8 @@
 # Import packages.
 import glob
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 import os
 
 import cvxpy as cp
@@ -28,8 +30,6 @@ def get_data(file_name):
  
     results = []
     items = []
-    # bytes_sent = {}
-    # n_observations = []
 
     ################ Reading file ##################################
     with open(file_name, 'r') as file:
@@ -37,25 +37,16 @@ def get_data(file_name):
             line = file.readline()
             if not line:
                 break
-            timestep, n_robots = map(int, line.split(' '))
+            timestep, num_robots = map(int, line.split(' '))
             total_tuples = 0
-            for _ in range(n_robots):
-                # line = file.readline().split(' ')
-                # n_results = int(line[0])
-                # message_size = int(line[1])
-                # if line[0] not in bytes_sent:
-                #     bytes_sent[line[0]] = [message_size]
-                # else:
-                #     bytes_sent[line[0]].append(message_size)
-
-                # for _ in range(n_results):
-                line = file.readline().split(' ')
+            for _ in range(num_robots):
+                line = file.readline().strip('\n').split(' ')
                 rid = line[0]
                 node_id = int(line[1])
                 num_tuples = int(line[2])
-                neighbors = line[3:]
+                neighbors = int(line[3])
                 total_tuples += num_tuples
-                results.append((timestep, rid, neighbors, node_id, num_tuples))
+                results.append((timestep, rid, node_id, num_tuples, neighbors))
             items.append(total_tuples)
     return results, items
 
@@ -67,6 +58,7 @@ for name in file_names:
     n = n[-1].split('.')
     n = n[0].split('_')
     min_votes = n[1]
+    num_robots = int(n[2])
 
     results, load = get_data(name)
     results_dict[min_votes] = results
@@ -76,10 +68,27 @@ for name in file_names:
 #           Simulation
 ##################################################################################
 
-
-
-
-
+########### Plotting bin packing cost vs time ###########################
+plt.figure()
+M = int(storage) + int(routing)
+for key in results_dict.keys():
+    results = results_dict[key]
+    x = []
+    y = []
+    cost = 0
+    for i, result in enumerate(results):
+        free_memory = float(M - result[3])
+        if (result[3] != 0):
+            cost += 1 / (max(result[4], 1) * max(free_memory,1))
+        if((i+1)%num_robots == 0):
+            x.append(result[0] // 10)
+            y.append(cost)
+            cost = 0
+    plt.plot(x, y , label = key, alpha = 0.7)
+plt.xlabel('Time (sec)')
+plt.ylabel('Storage Cost')
+plt.legend()
+plt.show()
 
 ##################################################################################
 #           Optimization

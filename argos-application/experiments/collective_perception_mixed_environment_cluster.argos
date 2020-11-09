@@ -273,7 +273,7 @@
       <position method="uniform" min="-4,-4,0" max="4,4,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="NB_ROBOTS" max_trials="100" base_num="1">
-        <foot-bot id="K" rab_data_size="1000" rab_range="2">
+        <foot-bot id="K" rab_data_size="2000" rab_range="2">
           <controller config="knc" />
         </foot-bot>
       </entity>

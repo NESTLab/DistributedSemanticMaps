@@ -274,8 +274,8 @@
     <distribute>
       <position method="uniform" min="-4,-4,0" max="4,4,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="60" max_trials="100" base_num="1">
-        <foot-bot id="K" rab_data_size="1500" rab_range="2">
+      <entity quantity="30" max_trials="100" base_num="1">
+        <foot-bot id="K" rab_data_size="2000" rab_range="2">
           <controller config="knc" />
         </foot-bot>
       </entity>
@@ -303,7 +303,7 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl>
+    <!-- <qt-opengl>
       <camera>
         <placements>
           <placement index="0" position="11.7261,-0.119388,10.4881" look_at="10.9981,-0.126348,9.80264" up="-0.685476,-0.00655334,0.728065" lens_focal_length="65" />
@@ -311,7 +311,7 @@
       </camera>
       <user_functions library="build/loop_functions/libpoint_cloud_qtuser_functions.so"
                       label="point_cloud_qtuser_functions" />           
-    </qt-opengl>
+    </qt-opengl> -->
   </visualization>
 
 </argos-configuration>
