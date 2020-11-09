@@ -64,6 +64,7 @@ private:
 
    std::ofstream m_ofOutputFile;
    std::ofstream m_ofHistogramFile;
+   std::ofstream m_ofVcsbppFile;
    UInt16 m_unClock;
    UInt32 m_unNumRobots;
 };

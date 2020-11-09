@@ -56,11 +56,19 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
                                     + ToString(unRoutingMemory) + "_"
                                     + ToString(unHashing) + ".dat";
 
+    std::string strVcsbppFileName = "vcbppfile_" 
+                                  + ToString(unMinVotes) + "_"
+                                  + ToString(m_unNumRobots) + "_"
+                                  + ToString(unSeed) + "_"
+                                  + ToString(unStorageMemory) + "_"
+                                  + ToString(unRoutingMemory) + "_"
+                                  + ToString(unHashing) + ".dat";
+
     m_ofOutputFile.open(strOutputFileName, std::ios_base::trunc | std::ios_base::out);
     m_ofHistogramFile.open(strHistogramFileName, std::ios_base::trunc | std::ios_base::out);
+    m_ofVcsbppFile.open(strVcsbppFileName, std::ios_base::trunc | std::ios_base::out);
     m_unStorageCapacity = 0;
     m_unRoutingCapacity = 0;
-
 
     for (CSpace::TMapPerType::iterator it = cRobots.begin(); it != cRobots.end(); it++) {
         CFootBotEntity* cRobot = any_cast<CFootBotEntity*>(it->second);
@@ -81,6 +89,8 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
         m_mapActualCategories[sLocation] = cPointCloud.GetCategory();
     }
     m_ofOutputFile << cPointClouds.size() << '\n';
+
+
 }
 
 void CPointCloudLoopFunctions::SplitStringToUInt8(std::string str, std::vector<UInt8>& buffer) {
@@ -132,15 +142,16 @@ void CPointCloudLoopFunctions::PreStep() {
 void CPointCloudLoopFunctions::PostStep() {
     UInt16 unTotalMessages = 0;
     m_ofOutputFile << m_unClock << ' ' << m_unNumRobots << '\n';
+    m_ofVcsbppFile << m_unClock << ' ' << m_unNumRobots << '\n';
     m_ofHistogramFile << m_unClock << '\n';
 
     UInt32 unTotalConsolidations = 0;
     UInt32 unTotalTuples = 0;
+    std::vector<STuple> vecAllTuples;
 
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
         unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
-
 
         std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
         std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
@@ -149,6 +160,13 @@ void CPointCloudLoopFunctions::PostStep() {
             vecVotingDecisions.size() << '\n';
         m_vecControllers[i]->ResetBytesSent();
         m_ofHistogramFile << m_vecControllers[i]->GetNodeID() << ' ';
+        m_ofVcsbppFile << m_vecControllers[i]->GetId() << ' ' << m_vecControllers[i]->GetNodeID()
+        << ' ' << m_vecControllers[i]->GetNumStoredTuples() + m_vecControllers[i]->GetNumRoutingTuples();
+
+        for (auto neighbor : m_vecControllers[i]->GetNeighbors()) {
+            m_ofVcsbppFile << ' ' << neighbor.RId;
+        }
+        m_ofVcsbppFile << '\n';
 
         for (int i = 0; i < vecVotingDecisions.size(); i++) {
             SEventData sVotingDecision = vecVotingDecisions[i];
@@ -157,15 +175,16 @@ void CPointCloudLoopFunctions::PostStep() {
             if (m_mapVotedCategories.find(sVotingDecision.Location) == m_mapVotedCategories.end()) {
                 m_mapVotedCategories[sVotingDecision.Location] = sVotingDecision.Payload.Category;
             }
-
             m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
                 strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
                 sTimingInfo.LastUpdate - sTimingInfo.Start << ' ' <<
                 sVotingDecision.Location.X << ' ' << sVotingDecision.Location.Y << 
                 ' ' << sVotingDecision.Location.Z << '\n';
         }
+
         std::vector<STuple> vecTuples = m_vecControllers[i]->GetTuples();
         m_ofHistogramFile << vecTuples.size() << '\n';
+
         for (STuple sTuple : vecTuples) {
             m_ofHistogramFile << sTuple.Key.Identifier << ' ' << sTuple.Key.Hash << '\n';
             if (sTuple.Value.Type == "collective_label") {
@@ -176,10 +195,32 @@ void CPointCloudLoopFunctions::PostStep() {
         m_vecControllers[i]->ClearTimingInfo();
         m_vecControllers[i]->SetMessageCount(0);
         m_vecControllers[i]->SetNumStoredTuples(0);
+
+        vecAllTuples.insert(vecAllTuples.end(), vecTuples.begin(), vecTuples.end());
     }
     float fLoad = unTotalTuples / static_cast<float>(m_unStorageCapacity);
     m_ofOutputFile << fLoad << '\n'; 
-    std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << ' ' << m_mapActualCategories.size() << '\n';
+
+    if (unTotalConsolidations < m_mapVotedCategories.size())
+    {
+        std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << '\n';
+        // Find missing tuple 
+        for (auto elem : m_mapVotedCategories)
+        {
+            SLocation sVoteLoc = elem.first;
+            /* Check if distance within noise radius */
+            /* Note: no noise on position for now so unnecessary */
+            auto found = std::find_if(vecAllTuples.begin(), vecAllTuples.end(),
+            [sVoteLoc] (const STuple& s_tuple) { 
+                CVector3 cTupleLocation(s_tuple.Value.Location.X, 
+                s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
+                CVector3 cVoteLoc(sVoteLoc.X, sVoteLoc.Y, sVoteLoc.Z);
+                return Distance(cTupleLocation, cVoteLoc) <= 0.01 && s_tuple.Key.Hash == 76;}
+            );
+            if(found == vecAllTuples.end()) std::cout << "Missing " << sVoteLoc.X << " " << sVoteLoc.Y << "\n";
+        }
+    }
+
 }
 
 /****************************************/

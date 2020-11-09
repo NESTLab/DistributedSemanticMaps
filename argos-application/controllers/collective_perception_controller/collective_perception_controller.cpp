@@ -514,7 +514,7 @@ void CCollectivePerception::RequestObservations()
       {
          float fRadius = NOISE_THRESHOLD;
          /* Create spatial request for tuple of most important type */
-         mapFilterParams["radius"] = fRadius;  // noise under 0.3 
+         mapFilterParams["radius"] = fRadius;  // noise under 0.01
          mapFilterParams["location"] = sLocation;
          /* Save query */
          uint32_t unQueryId = m_cMySM.Filter((uint8_t) 1, mapFilterParams);
@@ -581,7 +581,7 @@ void CCollectivePerception::AggregateObservations()
                m_unMessageCount++;
 	            swarmmesh::SKey sKey = m_cMySM.Put(sEvent);
 	            uint32_t unTupleId = sKey.Identifier;
-               // LOG << m_unRobotId << ": " << unTupleId << std::endl;
+               // LOG << m_unRobotId << ": " << unTupleId << " " << sKey.Hash << std::endl;
 
                /* Delete the tuples at the location, 
                   except consolidated label*/
@@ -591,6 +591,7 @@ void CCollectivePerception::AggregateObservations()
                mapFilterParams["except"] = (uint32_t) unTupleId;
                m_cMySM.Erase((uint8_t) 2, mapFilterParams);
                
+               // LOG << "Erasing " << sLoc.X << " " << sLoc.Y << std::endl;
                // LOG << m_unRobotId << " deleting observations for " << sLoc.X << ", " <<
                // sLoc.Y  << " except tuple " << unTupleId <<'\n';
 

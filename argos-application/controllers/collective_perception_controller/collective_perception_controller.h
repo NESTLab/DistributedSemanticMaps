@@ -34,7 +34,7 @@ const uint16_t UPDATE_TIMEOUT = 20; // time out on waiting for new replies (mayb
 const uint16_t MIN_LOCAL_OBSERVATIONS = 2; // trigger for asking for votes
 const uint16_t MIN_NUM_VOTES = 5; // trigger for writing consolidated label
 
-const float NOISE_THRESHOLD = 0.3; // remove? no position noise in the simulation
+const float NOISE_THRESHOLD = 0.001; // remove? no position noise in the simulation
 
 /****************************************/
 /****************************************/
@@ -468,6 +468,7 @@ public:
 
    const std::vector<STuple>& GetTuples() { return m_vecTuples; }
    
+   const std::vector<SNeighbor>& GetNeighbors() {return m_vecNeighbors;}
 
 private:
 
