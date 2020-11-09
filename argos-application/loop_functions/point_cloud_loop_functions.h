@@ -5,6 +5,7 @@
 #include <fstream>
 #include <utility>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <swarmmesh.h>
 /* The controller */
@@ -58,6 +59,8 @@ private:
 
    /* Map to store the category voted on for the point cloud */
    std::unordered_map<SLocation, std::string, SLocation> m_mapVotedCategories;
+
+   std::unordered_set<SLocation, SLocation> m_setObservedCategories;
 
    uint16_t m_unStorageCapacity;
    uint16_t m_unRoutingCapacity;

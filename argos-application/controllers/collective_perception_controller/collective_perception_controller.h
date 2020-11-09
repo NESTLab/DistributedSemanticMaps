@@ -97,17 +97,32 @@ struct SPointCloud {
    /* Object category */
    std::string Category;
 
+   /* Corner */
+   CVector3 Corner;
+
+   /* Center */
+   CVector3 Center;
+
+   /* Orientation */
+   CQuaternion Orientation;
+
    /* Default constructor */
    SPointCloud() {}
 
    /* Parameterized constructor */
    SPointCloud(float radius,
-   std::string cat) : Category(cat), Radius(radius) {}
+   std::string cat, 
+   CVector3 corner,
+   CVector3 center,
+   CQuaternion orientation) : Category(cat), Radius(radius), Corner(corner), Center(center), Orientation(orientation) {}
 
    /* Assignment operator */
    SPointCloud& operator=(const SPointCloud& s_pc) {
       Radius = s_pc.Radius;
       Category = s_pc.Category;
+      Corner = s_pc.Corner;
+      Center = s_pc.Center;
+      Orientation = s_pc.Orientation;
       return *this;
    }
 };

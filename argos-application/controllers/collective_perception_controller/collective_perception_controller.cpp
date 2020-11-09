@@ -67,7 +67,14 @@ SEventData UnpackEventDataType(const std::vector<uint8_t>& vec_buffer, size_t& u
    // LOG << sValue.Type << '\n';
 
    sValue.Payload = {swarmmesh::UnpackFloat(vec_buffer, un_offset),
-                     CCategoryMap::CategoryToStringMap[static_cast<ECategory>(swarmmesh::UnpackUInt8(vec_buffer, un_offset))]};
+                     CCategoryMap::CategoryToStringMap[static_cast<ECategory>(swarmmesh::UnpackUInt8(vec_buffer, un_offset))], 
+                     CVector3(swarmmesh::UnpackFloat(vec_buffer, un_offset), swarmmesh::UnpackFloat(vec_buffer, un_offset), 
+                     swarmmesh::UnpackFloat(vec_buffer, un_offset)), 
+                     CVector3(swarmmesh::UnpackFloat(vec_buffer, un_offset), swarmmesh::UnpackFloat(vec_buffer, un_offset), 
+                     swarmmesh::UnpackFloat(vec_buffer, un_offset)),
+                     CQuaternion(swarmmesh::UnpackFloat(vec_buffer, un_offset), swarmmesh::UnpackFloat(vec_buffer, un_offset), 
+                     swarmmesh::UnpackFloat(vec_buffer, un_offset), swarmmesh::UnpackFloat(vec_buffer, un_offset))
+                     };
                      // swarmmesh::UnpackString(vec_buffer, un_offset)};
 
    // LOG << sValue.Payload.Category << '\n';
@@ -97,10 +104,24 @@ void PackEventDataType(std::vector<uint8_t>& vec_buffer, const SEventData& s_eve
    // LOG << static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]) << '\n';
    swarmmesh::PackUInt8(vec_buffer, static_cast<uint8_t>(CCategoryMap::StringToCategoryMap[s_event.Payload.Category]));
    // swarmmesh::PackString(vec_buffer, s_event.Payload.Category);
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Corner.GetX());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Corner.GetY());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Corner.GetZ());
+
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Center.GetX());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Center.GetY());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Center.GetZ());
+
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Orientation.GetW());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Orientation.GetX());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Orientation.GetY());
+   swarmmesh::PackFloat(vec_buffer, s_event.Payload.Orientation.GetZ());
+
 
    swarmmesh::PackFloat(vec_buffer, s_event.Location.X);
    swarmmesh::PackFloat(vec_buffer, s_event.Location.Y);
    swarmmesh::PackFloat(vec_buffer, s_event.Location.Z);
+   
 }
 
 /****************************************/
@@ -435,7 +456,7 @@ std::queue<SEventData> CCollectivePerception::RecordEvents()
       /* Compute sphere radius as corner to center distance */
       float fRadius = Distance(reading.Center, reading.Corners[0]);
       /* Record category and radius as payload */
-      event.Payload = SPointCloud(fRadius, reading.Category);
+      event.Payload = SPointCloud(fRadius, reading.Category, reading.Corners[0], reading.Center, reading.Orientation);
       event.Location = {(float) reading.Center.GetX(), (float) reading.Center.GetY(), 
       (float) reading.Center.GetZ()};
       /* Add to queue of events*/
@@ -645,7 +666,8 @@ SEventData CCollectivePerception::ConsolidateObservations(
    /* */
    sEvent.Type = "collective_label";
    /* */
-   sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated);
+   sEvent.Payload = SPointCloud(vecSorted.size(), strConsolidated, vecSorted[unTopIndex].Value.Payload.Corner, 
+            vecSorted[unTopIndex].Value.Payload.Center, vecSorted[unTopIndex].Value.Payload.Orientation);
    /* Location */
    sEvent.Location = s_loc;
    return sEvent;

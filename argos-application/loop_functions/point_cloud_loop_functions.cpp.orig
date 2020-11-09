@@ -70,7 +70,6 @@ void CPointCloudLoopFunctions::Init(TConfigurationNode& t_node) {
     m_unStorageCapacity = 0;
     m_unRoutingCapacity = 0;
 
-
     for (CSpace::TMapPerType::iterator it = cRobots.begin(); it != cRobots.end(); it++) {
         CFootBotEntity* cRobot = any_cast<CFootBotEntity*>(it->second);
         CCollectivePerception* cController = &dynamic_cast<CCollectivePerception&>(cRobot->GetControllableEntity().GetController());
@@ -148,13 +147,13 @@ void CPointCloudLoopFunctions::PostStep() {
 
     UInt32 unTotalConsolidations = 0;
     UInt32 unTotalTuples = 0;
+    std::vector<STuple> vecAllTuples;
 
     std::unordered_set<std::string> setObservedCategories;
 
     for (size_t i = 0; i < m_vecControllers.size(); i++) {
         unTotalMessages += m_vecControllers[i]->GetMessageCount();
         unTotalTuples += m_vecControllers[i]->GetNumStoredTuples();
-
 
         std::vector<SEventData>& vecVotingDecisions = m_vecControllers[i]->GetVotingDecisions();
         std::vector<CCollectivePerception::STimingInfo>& vecTimingInfo = m_vecControllers[i]->GetTimingInfo();
@@ -178,7 +177,6 @@ void CPointCloudLoopFunctions::PostStep() {
             if (m_mapVotedCategories.find(sVotingDecision.Location) == m_mapVotedCategories.end()) {
                 m_mapVotedCategories[sVotingDecision.Location] = sVotingDecision.Payload.Category;
             }
-
             m_ofOutputFile << sVotingDecision.Payload.Category << ' ' << 
                 strActualCategory << ' ' << sVotingDecision.Payload.Radius << ' ' <<
                 sTimingInfo.LastUpdate - sTimingInfo.Start << ' ' <<
@@ -200,10 +198,37 @@ void CPointCloudLoopFunctions::PostStep() {
         m_vecControllers[i]->ClearTimingInfo();
         m_vecControllers[i]->SetMessageCount(0);
         m_vecControllers[i]->SetNumStoredTuples(0);
+
+        vecAllTuples.insert(vecAllTuples.end(), vecTuples.begin(), vecTuples.end());
     }
     float fLoad = unTotalTuples / static_cast<float>(m_unStorageCapacity);
+<<<<<<< HEAD
+    m_ofOutputFile << fLoad << '\n'; 
+
+    if (unTotalConsolidations < m_mapVotedCategories.size())
+    {
+        std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << '\n';
+        // Find missing tuple 
+        for (auto elem : m_mapVotedCategories)
+        {
+            SLocation sVoteLoc = elem.first;
+            /* Check if distance within noise radius */
+            /* Note: no noise on position for now so unnecessary */
+            auto found = std::find_if(vecAllTuples.begin(), vecAllTuples.end(),
+            [sVoteLoc] (const STuple& s_tuple) { 
+                CVector3 cTupleLocation(s_tuple.Value.Location.X, 
+                s_tuple.Value.Location.Y, s_tuple.Value.Location.Z);
+                CVector3 cVoteLoc(sVoteLoc.X, sVoteLoc.Y, sVoteLoc.Z);
+                return Distance(cTupleLocation, cVoteLoc) <= 0.01 && s_tuple.Key.Hash == 76;}
+            );
+            if(found == vecAllTuples.end()) std::cout << "Missing " << sVoteLoc.X << " " << sVoteLoc.Y << "\n";
+        }
+    }
+
+=======
     m_ofOutputFile << fLoad << ' ' << m_setObservedCategories.size() << '\n'; 
     // std::cout << unTotalConsolidations << ' ' << m_mapVotedCategories.size() << ' ' << m_mapActualCategories.size() << '\n';
+>>>>>>> 2ffcdbf30ab97ceacadd18ffcd47f4ec053fe357
 }
 
 /****************************************/
