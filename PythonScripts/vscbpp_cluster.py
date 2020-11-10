@@ -41,7 +41,8 @@ def get_data(file_name):
             total_tuples = 0
             for _ in range(num_robots):
                 line = file.readline().strip('\n').split(' ')
-                rid = line[0]
+                rid = int(line[0][1:])
+                print(rid)
                 node_id = int(line[1])
                 num_tuples = int(line[2])
                 neighbors = int(line[3])
@@ -65,6 +66,54 @@ for name in file_names:
     load_dict[min_votes] = load
 
 ##################################################################################
+#           Optimization
+##################################################################################
+
+# Generate fake data
+# bins = 10
+# items = 40
+# np.random.seed(1)
+# neighbors = np.random.randint(1, bins, bins)
+# M = 15
+
+def partitions(n, I=1):
+    yield (n,)
+    for i in range(I, n//2 + 1):
+        for p in partitions(n-i, i):
+            yield (i,) + p
+
+def solve_vscbpp(total_tuples, num_robots, neighbors, memory_capacity):
+    min_cost = num_robots
+    optimal_partition = []
+    # Sort in ascending order
+    a_neighbors = sorted(neighbors)
+    idx_neighbors = np.argsort(neighbors)
+    assignment_partitions = partitions(total_tuples)
+    for partition in assignment_partitions:
+        num_parts = len(partition)
+        # Ignore partitions with too many parts
+        if(num_parts >  num_robots): 
+            continue
+        # Sort in descending order
+        d_partition = sorted(partition, reverse=True)
+        # Impose volume constraint
+        if(d_partition[0] > memory_capacity):
+            continue
+        # Match largest num neighbors with lowest part size
+        prod = np.multiply(a_neighbors[-num_parts:], M - np.array(d_partition))
+        cur_cost = sum(np.divide(1, prod))
+        if (cur_cost < min_cost):
+            # print (min_cost, cur_cost)
+            min_cost = cur_cost
+            optimal_partition = list([0] * (num_robots - len(partition)) + list(partition))
+    return min_cost, optimal_partition, idx_neighbors
+
+# cost, optimal_partition, idx = solve_vscbpp(items, bins, neighbors, M) 
+# print(cost)
+# # print(np.arange(1, bins+1))
+# print(np.array(optimal_partition)[idx])
+
+##################################################################################
 #           Simulation
 ##################################################################################
 
@@ -73,27 +122,31 @@ plt.figure()
 M = int(storage) + int(routing)
 for key in results_dict.keys():
     results = results_dict[key]
+    tuples = load_dict[key]
     x = []
     y = []
+    y_opt = []
+    neighbors = np.zeros(num_robots)
     cost = 0
     for i, result in enumerate(results):
+        neighbors[result[1] - 1] = result[4]
         free_memory = float(M - result[3])
         if (result[3] != 0):
             cost += 1 / (max(result[4], 1) * max(free_memory,1))
         if((i+1)%num_robots == 0):
             x.append(result[0] // 10)
             y.append(cost)
+            print("t", result[0])
+            opt_cost, pa, idx = solve_vscbpp(tuples[i], num_robots, neighbors, M)
+            y_opt.append(opt_cost)
+            neighbors = np.zeros(num_robots)
             cost = 0
     plt.plot(x, y , label = key, alpha = 0.7)
+    plt.plot(x, y_opt, label = key + '*', alpha = 0.7)
 plt.xlabel('Time (sec)')
 plt.ylabel('Storage Cost')
 plt.legend()
 plt.show()
-
-##################################################################################
-#           Optimization
-##################################################################################
-
 
 
 # # Generate data.
