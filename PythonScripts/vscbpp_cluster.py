@@ -1,20 +1,17 @@
 # Import packages.
 import glob
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 import os
 
-import cvxpy as cp
-import numpy as np
+# import cvxpy as cp
 
 ##################################################################################
 #           Data import
 ##################################################################################
 
 folder = 'runD'
-n_robots = '*'
-min_votes = '*'
+n_robots = '30'
+min_votes = '5'
 seed = '1'
 storage = '10'
 routing = '5'
@@ -42,7 +39,6 @@ def get_data(file_name):
             for _ in range(num_robots):
                 line = file.readline().strip('\n').split(' ')
                 rid = int(line[0][1:])
-                print(rid)
                 node_id = int(line[1])
                 num_tuples = int(line[2])
                 neighbors = int(line[3])
@@ -69,85 +65,115 @@ for name in file_names:
 #           Optimization
 ##################################################################################
 
-# Generate fake data
-# bins = 10
-# items = 40
-# np.random.seed(1)
-# neighbors = np.random.randint(1, bins, bins)
-# M = 15
+def accel_asc(n):
+    a = [0 for i in range(n + 1)]
+    k = 1
+    y = n - 1
+    while k != 0:
+        x = a[k - 1] + 1
+        k -= 1
+        while 2 * x <= y:
+            a[k] = x
+            y -= x
+            k += 1
+        l = k + 1
+        while x <= y:
+            a[k] = x
+            a[l] = y
+            yield a[:k + 2]
+            x += 1
+            y -= 1
+        a[k] = x + y
+        y = x + y - 1
+        yield a[:k + 1]
 
-def partitions(n, I=1):
-    yield (n,)
-    for i in range(I, n//2 + 1):
-        for p in partitions(n-i, i):
-            yield (i,) + p
-
-def solve_vscbpp(total_tuples, num_robots, neighbors, memory_capacity):
+def solve_vscbpp_accel(total_tuples, num_robots, neighbors, memory_capacity):
     min_cost = num_robots
     optimal_partition = []
     # Sort in ascending order
     a_neighbors = sorted(neighbors)
     idx_neighbors = np.argsort(neighbors)
-    assignment_partitions = partitions(total_tuples)
+    assignment_partitions = accel_asc(total_tuples)
     for partition in assignment_partitions:
         num_parts = len(partition)
         # Ignore partitions with too many parts
         if(num_parts >  num_robots): 
             continue
-        # Sort in descending order
-        d_partition = sorted(partition, reverse=True)
+        # Sort in ascending order
+        a_partition = sorted(partition)
         # Impose volume constraint
-        if(d_partition[0] > memory_capacity):
+        if(a_partition[-1] > memory_capacity):
             continue
-        # Match largest num neighbors with lowest part size
-        prod = np.multiply(a_neighbors[-num_parts:], M - np.array(d_partition))
+        # Match largest num neighbors with largest part size
+        prod = np.multiply(a_neighbors[-num_parts:], memory_capacity - np.array(a_partition))
         cur_cost = sum(np.divide(1, prod))
         if (cur_cost < min_cost):
             # print (min_cost, cur_cost)
             min_cost = cur_cost
-            optimal_partition = list([0] * (num_robots - len(partition)) + list(partition))
-    return min_cost, optimal_partition, idx_neighbors
-
-# cost, optimal_partition, idx = solve_vscbpp(items, bins, neighbors, M) 
-# print(cost)
-# # print(np.arange(1, bins+1))
-# print(np.array(optimal_partition)[idx])
+            optimal_partition = list([0] * (num_robots - len(partition)) + list(a_partition))
+    # Unsort back to initial neighbor order 
+    idx_unsort = idx_neighbors.argsort()
+    opt_partition = np.array(optimal_partition)[idx_unsort]
+    return min_cost, opt_partition
 
 ##################################################################################
-#           Simulation
+#           Bin Packing
 ##################################################################################
 
-########### Plotting bin packing cost vs time ###########################
-plt.figure()
+########### Saving bin packing cost over time ###########################
+
+#### In simulation ####
+
 M = int(storage) + int(routing)
 for key in results_dict.keys():
     results = results_dict[key]
     tuples = load_dict[key]
     x = []
     y = []
-    y_opt = []
-    neighbors = np.zeros(num_robots)
+    # assignments = []
     cost = 0
+    # assignment = np.zeros(num_robots)
     for i, result in enumerate(results):
-        neighbors[result[1] - 1] = result[4]
+        # assignment[result[1] - 1] = result[3]
         free_memory = float(M - result[3])
         if (result[3] != 0):
             cost += 1 / (max(result[4], 1) * max(free_memory,1))
         if((i+1)%num_robots == 0):
-            x.append(result[0] // 10)
+            print(result[0], tuples[result[0]-1])
+            x.append(result[0] / 10)
             y.append(cost)
-            print("t", result[0])
-            opt_cost, pa, idx = solve_vscbpp(tuples[i], num_robots, neighbors, M)
-            y_opt.append(opt_cost)
-            neighbors = np.zeros(num_robots)
             cost = 0
-    plt.plot(x, y , label = key, alpha = 0.7)
-    plt.plot(x, y_opt, label = key + '*', alpha = 0.7)
-plt.xlabel('Time (sec)')
-plt.ylabel('Storage Cost')
-plt.legend()
-plt.show()
+            # assignments.append(assignment)
+            # assignment = np.zeros(num_robots)
+    # Write to file (made to match optimal, want to have a partial file if takes too long)
+    with open("heuristic_" + folder + '_' + min_votes + '_' + n_robots + ".txt", "w") as f:
+        for i,j in zip(x,y):
+            f.write(str(i) +"\n")
+            f.write(str(j) +"\n")
 
+#### Optimal solution ####
+
+M = int(storage) + int(routing)
+for key in results_dict.keys():
+    results = results_dict[key]
+    tuples = load_dict[key]
+    x_opt = []
+    y_opt = []
+    neighbors = np.zeros(num_robots)
+    for i, result in enumerate(results):
+        neighbors[result[1] - 1] = result[4]
+        if((i+1)%num_robots == 0):
+            print("t", result[0])
+            # Skip time steps 
+            if (result[0]%10 != 0):
+                continue
+            opt_cost, pa = solve_vscbpp_accel(tuples[result[0]-1], num_robots, neighbors, M)
+            x_opt = result[0] / 10
+            y_opt = opt_cost
+            neighbors = np.zeros(num_robots)
+            with open("optimal_" + folder + '_' + min_votes + '_' + n_robots + ".txt", "a") as f:
+                f.write(str(x_opt) +"\n")
+                f.write(str(y_opt) +"\n")
 
 # # Generate data.
 # bins = 10
