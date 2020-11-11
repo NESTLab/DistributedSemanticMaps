@@ -8,4 +8,4 @@
 # Stop execution after any error
 set -e
 
-sbatch python3 vscbpp_cluster.py
+python vscbpp_cluster.py

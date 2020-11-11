@@ -43,12 +43,30 @@ with open(file_name[0], 'r') as file:
             break
         y_opt.append(float(line))
 
+name = '/worst_' + folder + '*'
+path = os.path.abspath(os.path.join(os.getcwd(), '..', 'argos-application', 'data', folder))
+file_name = glob.glob(path + name)
+print(file_name)
+x_w = []
+y_w = []
+################ Worst file ##################################
+with open(file_name[0], 'r') as file:
+    while True:
+        line = file.readline().strip()
+        if not line:
+            break
+        x_w.append(float(line))
+        line = file.readline().strip()
+        if not line:
+            break
+        y_w.append(float(line))
 
 
 ########## Plotting bin packing cost vs time ###########################
 plt.figure()
 plt.plot(x, y , label = 'SwarmMesh', alpha = 0.7)
 plt.plot(x_opt, y_opt, label = 'Optimal', alpha = 0.7)
+plt.plot(x_w, y_w, label = 'Worst', alpha = 0.7)
 plt.xlabel('Time (sec)')
 plt.ylabel('Storage Cost')
 plt.legend()

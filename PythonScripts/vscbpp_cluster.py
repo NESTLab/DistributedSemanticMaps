@@ -11,10 +11,10 @@ import os
 
 folder = 'runD'
 n_robots = '30'
-min_votes = '5'
+min_votes = '3'
 seed = '1'
 storage = '10'
-routing = '5'
+routing = '10'
 hashing_bucket = '5'
 name = '/vcsbppfile_' + min_votes + '_' + n_robots + '_' + seed + '_' + storage + '_' + routing + '_' + hashing_bucket + '.dat'
 
@@ -65,6 +65,8 @@ for name in file_names:
 #           Optimization
 ##################################################################################
 
+# https://stackoverflow.com/questions/10035752/elegant-python-code-for-integer-partitioning
+# See vscbpp_testing for more detail
 def accel_asc(n):
     a = [0 for i in range(n + 1)]
     k = 1
@@ -137,7 +139,7 @@ for key in results_dict.keys():
         # assignment[result[1] - 1] = result[3]
         free_memory = float(M - result[3])
         if (result[3] != 0):
-            cost += 1 / (max(result[4], 1) * max(free_memory,1))
+            cost += 1 / max(result[4] * free_memory, 1)
         if((i+1)%num_robots == 0):
             print(result[0], tuples[result[0]-1])
             x.append(result[0] / 10)
@@ -146,34 +148,76 @@ for key in results_dict.keys():
             # assignments.append(assignment)
             # assignment = np.zeros(num_robots)
     # Write to file (made to match optimal, want to have a partial file if takes too long)
-    with open("heuristic_" + folder + '_' + min_votes + '_' + n_robots + ".txt", "w") as f:
+    with open("heuristic_" + folder + '_' + key + '_' + n_robots + ".txt", "w") as f:
         for i,j in zip(x,y):
             f.write(str(i) +"\n")
             f.write(str(j) +"\n")
 
 #### Optimal solution ####
 
+# M = int(storage) + int(routing)
+# for key in results_dict.keys():
+#     results = results_dict[key]
+#     tuples = load_dict[key]
+#     x_opt = []
+#     y_opt = []
+#     neighbors = np.zeros(num_robots)
+#     for i, result in enumerate(results):
+#         neighbors[result[1] - 1] = result[4]
+#         if((i+1)%num_robots == 0):
+#             print("t", result[0])
+#             # Skip time steps 
+#             if (result[0]%10 != 0):
+#                 continue
+#             opt_cost, pa = solve_vscbpp_accel(tuples[result[0]-1], num_robots, neighbors, M)
+#             x_opt = result[0] / 10
+#             y_opt = opt_cost
+#             neighbors = np.zeros(num_robots)
+#             with open("optimal_" + folder + '_' + key + '_' + n_robots + ".txt", "a") as f:
+#                 f.write(str(x_opt) +"\n")
+#                 f.write(str(y_opt) +"\n")
+
+#### Worst cost ####
+
 M = int(storage) + int(routing)
 for key in results_dict.keys():
     results = results_dict[key]
     tuples = load_dict[key]
-    x_opt = []
-    y_opt = []
+    x_worst = []
+    y_worst = []
+    worst_cost = 0
     neighbors = np.zeros(num_robots)
     for i, result in enumerate(results):
         neighbors[result[1] - 1] = result[4]
         if((i+1)%num_robots == 0):
-            print("t", result[0])
-            # Skip time steps 
-            if (result[0]%10 != 0):
-                continue
-            opt_cost, pa = solve_vscbpp_accel(tuples[result[0]-1], num_robots, neighbors, M)
-            x_opt = result[0] / 10
-            y_opt = opt_cost
+            items = tuples[result[0]-1]
+            # Put one item in all bins with 0 neighbors (assuming low enough load factor)
+            zero_neighbors = len(neighbors) - np.count_nonzero(neighbors)
+            if(items > zero_neighbors):
+                worst_cost += zero_neighbors
+                items -= zero_neighbors
+            if items > 0 and items < M: 
+                # Put all in one bin 
+                worst_cost += 1
+            else:
+                # Sort number of neighbors in ascending order
+                a_neighbors = sorted(neighbors)
+                # Fill out memory of bins with lowest degree
+                num_bins_to_fill = items // M
+                worst_cost += num_bins_to_fill
+                items -= num_bins_to_fill * M # same as modulo
+                # Put remaining items in next lowest 
+                if(items > 0):
+                    n_low = a_neighbors[zero_neighbors + num_bins_to_fill - 1]
+                    free_memory = M - items
+                    worst_cost += 1 / (max(n_low * free_memory, 1))
+            x_worst = result[0] / 10
+            y_worst = worst_cost
             neighbors = np.zeros(num_robots)
-            with open("optimal_" + folder + '_' + min_votes + '_' + n_robots + ".txt", "a") as f:
-                f.write(str(x_opt) +"\n")
-                f.write(str(y_opt) +"\n")
+            worst_cost = 0
+            with open("worst_" + folder + '_' + key + '_' + n_robots + ".txt", "a") as f:
+                f.write(str(x_worst) +"\n")
+                f.write(str(y_worst) +"\n")
 
 # # Generate data.
 # bins = 10
